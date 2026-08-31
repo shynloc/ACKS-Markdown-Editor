@@ -32,4 +32,6 @@ services:
 
 networks:
   private:
-    internal: true
+    # Public access still enters through the loopback-only published port and Caddy.
+    # An internal-only Docker network would also block the host's published-port NAT.
+    driver: bridge
