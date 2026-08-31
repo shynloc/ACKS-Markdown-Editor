@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="light" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: https: http:; connect-src https:; frame-src 'self' data: blob:; font-src data:; base-uri 'none'; form-action 'none'; object-src 'none'"
+    />
+    <title>ACKS Markdown</title>
+    <style>
+      /*__CSS__*/
+    </style>
+  </head>
+  <body>
+    <header class="app-header">
+      <a class="brand" href="#" aria-label="ACKS Markdown 首页"
+        ><img src="/*__LOGO__*/" alt="" width="32" height="32" /><span
+          >ACKS <span class="brand-product">Markdown</span></span
+        ></a
+      >
+      <span id="save-state" class="save-state" role="status">正在读取草稿</span>
+      <div class="header-actions">
+        <button
+          id="import-open"
+          class="secondary"
+          data-icon="upload-simple"
+          aria-label="导入文档"
+        >
+          导入
+        </button>
+        <button
+          id="style-open"
+          class="secondary desktop-control"
+          data-icon="palette"
+        >
+          文章主题
+        </button>
+        <button
+          id="copy"
+          aria-label="复制到公众号"
+          class="primary"
+          data-icon="arrow-square-out"
+        >
+          <span class="copy-label">复制到公众号</span>
+        </button>
+        <button
+          id="more-open"
+          class="icon-button"
+          data-icon="dots-three"
+          aria-label="更多操作"
+          aria-expanded="false"
+          aria-controls="more-menu"
+        ></button>
+      </div>
+    </header>
+    <div
+      id="more-menu"
+      class="popover hidden"
+      role="menu"
+      aria-label="更多操作"
+    >
+      <button
+        role="menuitem"
+        data-action="history"
+        data-icon="clock-counter-clockwise"
+      >
+        文档历史
+      </button>
+      <button role="menuitem" data-action="snapshot" data-icon="plus">
+        保存版本
+      </button>
+      <button role="menuitem" data-action="import" data-icon="upload-simple">
+        导入 Markdown / 文档
+      </button>
+      <button
+        role="menuitem"
+        data-action="export-md"
+        data-icon="download-simple"
+      >
+        下载 Markdown / 图片包
+      </button>
+      <button
+        role="menuitem"
+        data-action="export-doc"
+        data-icon="download-simple"
+      >
+        下载完整文档
+      </button>
+      <button role="menuitem" data-action="export-html" data-icon="code">
+        下载公众号 HTML
+      </button>
+      <button
+        role="menuitem"
+        data-action="sample"
+        data-icon="arrow-counter-clockwise"
+      >
+        载入示例（先保存当前版本）
+      </button>
+    </div>
+    <section class="document-strip" aria-label="文档信息">
+      <button
+        id="outline-toggle"
+        class="icon-button"
+        data-icon="sidebar-simple"
+        aria-label="切换文章大纲"
+        aria-expanded="true"
+      ></button>
+      <span id="document-title">未命名文档</span
+      ><span id="mobile-save" role="status">本机草稿</span>
+      <button
+        id="theme-current"
+        class="theme-current"
+        aria-controls="style-panel"
+        aria-expanded="false"
+      >
+        <span class="theme-action-label" data-icon="palette">主题</span
+        ><span id="theme-label">宋式 · 雅</span
+        ><span class="chevron" data-icon="caret-down"></span>
+      </button>
+    </section>
+    <aside id="save-conflict" class="save-conflict hidden" role="alert">
+      <p id="conflict-message"></p>
+      <button id="conflict-download" class="secondary">下载本窗口文稿</button
+      ><button id="conflict-load" class="secondary">备份并载入较新版本</button>
+    </aside>
+    <main class="workspace">
+      <aside id="outline" class="outline" aria-label="文章大纲">
+        <div class="outline-head">文章大纲</div>
+        <nav id="outline-items"></nav>
+        <p class="outline-hint">点击段落编辑<br />⌘ / Ctrl + S 保存</p>
+      </aside>
+      <section class="work-area" aria-label="文章工作区">
+        <div id="writing-pane" class="mode-pane">
+          <div class="writing-meta">
+            草稿 <span>/</span> Markdown
+            <span class="local-badge">仅保存到本机</span>
+          </div>
+          <div id="writer" class="writer" aria-label="Markdown 写作画布"></div>
+          <button id="append-block" class="append-block" data-icon="plus">
+            继续写作
+          </button>
+        </div>
+        <div id="source-pane" class="mode-pane hidden">
+          <label class="writing-meta" for="src"
+            >Markdown 源码
+            <span class="local-badge">与写作画布同步</span></label
+          >
+          <p id="asset-note" class="media-note hidden">
+            图片以短引用显示。下载 Markdown / 图片包时，原图会一同打包。
+          </p>
+          <textarea
+            id="src"
+            spellcheck="false"
+            aria-label="Markdown 源码"
+            placeholder="从一个标题开始…"
+          ></textarea>
+        </div>
+        <div id="preview-pane" class="mode-pane hidden">
+          <div class="preview-toolbar">
+            <div class="segmented" role="group" aria-label="成稿输出类型">
+              <button id="preview-rich" aria-pressed="true">完整效果</button
+              ><button id="preview-export" aria-pressed="false">
+                公众号输出
+              </button>
+            </div>
+            <span id="preview-status">已应用</span>
+          </div>
+          <div id="preview-scroll" class="preview-scroll">
+            <div id="preview" class="theme-surface"></div>
+            <iframe
+              id="wxframe"
+              class="hidden"
+              title="公众号输出预览"
+              sandbox="allow-same-origin"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </div>
+          <p id="export-notice" class="export-notice hidden"></p>
+        </div>
+      </section>
+    </main>
+    <nav id="mode-dock" class="mode-dock" aria-label="编辑模式">
+      <div class="segmented">
+        <button data-mode="write" aria-pressed="true">写作</button
+        ><button data-mode="source" aria-pressed="false">源码</button
+        ><button data-mode="preview" aria-pressed="false">成稿</button>
+      </div>
+      <button
+        id="dock-style"
+        class="icon-button theme-dock-button"
+        data-icon="palette"
+        aria-label="选择文章主题"
+      >
+        <span>主题</span>
+      </button>
+    </nav>
+    <div
+      id="format-dock"
+      class="format-dock hidden"
+      role="toolbar"
+      aria-label="Markdown 编辑工具"
+    >
+      <button data-format="bold" data-icon="text-b" aria-label="粗体">
+        <span class="format-label">粗体</span>
+      </button>
+      <button data-format="italic" data-icon="text-italic" aria-label="斜体">
+        <span class="format-label">斜体</span>
+      </button>
+      <button data-tools="headings" data-icon="text-h" aria-label="标题级别">
+        <span class="format-label">标题</span>
+      </button>
+      <button
+        data-tools="paragraphs"
+        data-icon="list-bullets"
+        aria-label="段落与列表"
+      >
+        <span class="format-label">列表</span>
+      </button>
+      <button
+        data-tools="insert"
+        data-icon="plus"
+        aria-label="插入代码、链接、图片或表格"
+      >
+        <span class="format-label">插入</span>
+      </button>
+      <button
+        data-tools="text"
+        data-icon="sliders-horizontal"
+        aria-label="完整文字格式"
+      >
+        <span class="format-label">格式</span>
+      </button>
+      <button id="finish-block" data-icon="check" aria-label="完成段落编辑">
+        <span class="format-label">完成</span>
+      </button>
+    </div>
+    <section
+      id="style-panel"
+      class="style-panel hidden"
+      role="region"
+      aria-labelledby="style-title"
+    >
+      <button
+        id="sheet-height"
+        class="sheet-grabber"
+        aria-label="展开或收起排版面板"
+      >
+        <span></span>
+      </button>
+      <header class="sheet-head">
+        <button id="style-cancel" class="text-button">取消</button>
+        <h2 id="style-title">文章排版</h2>
+        <span class="sheet-spacer"></span>
+      </header>
+      <div class="style-tabs segmented" role="group" aria-label="排版类别">
+        <button data-style-tab="themes" aria-pressed="true">主题</button
+        ><button data-style-tab="recipes" aria-pressed="false">配方</button
+        ><button data-style-tab="tweaks" aria-pressed="false">微调</button>
+      </div>
+      <div class="style-scroll">
+        <div id="themes-tab">
+          <div class="theme-library-heading">
+            文章主题 <span>共 <span id="theme-total">43</span> 款</span>
+          </div>
+          <input
+            id="theme-search"
+            class="hidden"
+            type="search"
+            placeholder="搜索主题名称"
+            aria-label="搜索文章主题"
+          />
+          <div id="theme-filters" class="theme-filters hidden">
+            <label
+              >主题系列<select id="theme-collection">
+                <option value="all">全部系列</option>
+                <option value="acks">ACKS · 19 款</option>
+                <option value="milestone">Milestone · 24 款</option>
+                <option value="custom">我的主题</option>
+              </select></label
+            >
+            <label
+              >明暗风格<select id="theme-appearance">
+                <option value="all">全部明暗</option>
+                <option value="light">浅色</option>
+                <option value="dark">深色</option>
+              </select></label
+            >
+          </div>
+          <div id="theme-grid" class="theme-grid"></div>
+          <p id="theme-empty" class="panel-help hidden">
+            没有匹配的主题，换个关键词试试。
+          </p>
+        </div>
+        <div id="recipes-tab" class="hidden">
+          <p class="panel-help">配方调整文章结构，保留主题配色。</p>
+          <div id="recipe-list" class="recipe-list"></div>
+        </div>
+        <div id="tweaks-tab" class="hidden tweak-list">
+          <label
+            >正文字号
+            <select id="tweak-size">
+              <option value="14">14 px</option>
+              <option value="15">15 px</option>
+              <option value="16">16 px</option>
+              <option value="17">17 px</option>
+              <option value="18">18 px</option>
+              <option value="20">20 px</option>
+            </select></label
+          >
+          <label
+            >正文行距
+            <select id="tweak-line">
+              <option value="1.5">1.5</option>
+              <option value="1.6">1.6</option>
+              <option value="1.8">1.8</option>
+              <option value="1.85">1.85</option>
+              <option value="1.9">1.9</option>
+              <option value="2">2.0</option>
+              <option value="2.2">2.2</option>
+            </select></label
+          >
+          <label
+            >首行缩进 <input type="checkbox" id="tweak-indent" role="switch"
+          /></label>
+          <label id="tweak-decor-row"
+            >显示主题装饰<input type="checkbox" id="tweak-decor" role="switch"
+          /></label>
+          <p class="panel-help">
+            矢量装饰随排版导出；纸张、玻璃图片仅用于完整效果。
+          </p>
+          <label id="tweak-copy-row" class="hidden"
+            >显示模板附加文字<input
+              type="checkbox"
+              id="tweak-copy"
+              role="switch"
+          /></label>
+          <button
+            id="tweak-reset"
+            class="secondary"
+            data-icon="arrow-counter-clockwise"
+          >
+            恢复主题与配方默认值
+          </button>
+          <p class="panel-help">
+            微调仅改变当前文章。编辑器外观不会随文章主题改变。
+          </p>
+        </div>
+      </div>
+      <div id="theme-expand-row" class="theme-expand-row">
+        <button
+          id="all-themes"
+          class="theme-expand"
+          aria-expanded="false"
+          data-icon="caret-down"
+        >
+          <span id="expand-label">展开全部主题（43 款）</span>
+        </button>
+      </div>
+      <footer class="sheet-footer">
+        <p id="theme-trial" role="status">请选择主题</p>
+        <div>
+          <button id="style-apply" class="primary">应用排版</button
+          ><button id="custom-open" class="secondary">自定义</button>
+        </div>
+      </footer>
+    </section>
+    <dialog
+      id="custom-dialog"
+      class="app-dialog"
+      aria-labelledby="custom-title"
+    >
+      <header>
+        <h2 id="custom-title">自定义主题</h2>
+        <button
+          class="icon-button dialog-close"
+          data-icon="x"
+          aria-label="关闭自定义主题"
+        ></button>
+      </header>
+      <div class="dialog-body">
+        <p class="panel-help">生成后先预览，应用后保存到当前文章。</p>
+        <label
+          >风格描述<textarea
+            id="gen-desc"
+            rows="2"
+            placeholder="例如：奶油纸质、复古手帐、衬线标题"
+          ></textarea>
+        </label>
+        <div class="form-row">
+          <label
+            >主题名称<input
+              id="gen-name"
+              placeholder="留空自动命名"
+              maxlength="60" /></label
+          ><label
+            >主色<input type="color" id="gen-accent" value="#5f7f6e"
+          /></label>
+        </div>
+        <label
+          >参考图（本地提取主色）<input
+            type="file"
+            id="gen-img"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+        /></label>
+        <button id="gen-run" class="primary">生成并预览</button>
+        <details>
+          <summary>混搭：配色 × 版式 × 素材</summary>
+          <div class="mix-fields">
+            <label>配色<select id="mix-palette"></select></label
+            ><label>版式<select id="mix-layout"></select></label
+            ><label>素材<select id="mix-material"></select></label>
+          </div>
+          <button id="mix-run" class="secondary">合成并预览</button>
+        </details>
+        <details>
+          <summary>接入模型（可选）</summary>
+          <p class="panel-help">
+            仅发送上方风格描述。Key
+            仅保留在本次页面内存，刷新后需重新填写；未配置时使用本地规则。
+          </p>
+          <label
+            >API 地址<input
+              id="llm-base"
+              type="url"
+              placeholder="https://api.deepseek.com" /></label
+          ><label
+            >API Key<input
+              id="llm-key"
+              type="password"
+              autocomplete="off"
+              placeholder="可选，不写入本地存储" /></label
+          ><label
+            >模型<input id="llm-model" placeholder="deepseek-chat"
+          /></label>
+          <p id="llm-status" role="status"></p>
+        </details>
+        <div class="form-row">
+          <button id="theme-import" class="secondary" data-icon="upload-simple">
+            导入主题 JSON</button
+          ><button
+            id="theme-export"
+            class="secondary"
+            data-icon="download-simple"
+          >
+            导出当前主题
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <dialog
+      id="history-dialog"
+      class="app-dialog"
+      aria-labelledby="history-title"
+    >
+      <header>
+        <h2 id="history-title">文档历史</h2>
+        <button
+          class="icon-button dialog-close"
+          data-icon="x"
+          aria-label="关闭文档历史"
+        ></button>
+      </header>
+      <div class="dialog-body">
+        <p class="panel-help">恢复前会保留当前文档。历史包含正文与排版设置。</p>
+        <button id="snapshot" class="secondary" data-icon="plus">
+          保存当前版本
+        </button>
+        <div id="history-list"></div>
+      </div>
+    </dialog>
+    <dialog
+      id="message-dialog"
+      class="app-dialog"
+      aria-labelledby="message-title"
+    >
+      <header><h2 id="message-title">操作确认</h2></header>
+      <div class="dialog-body">
+        <p id="message-body"></p>
+        <div class="form-row">
+          <button id="message-cancel" class="secondary">取消</button
+          ><button id="message-ok" class="primary">继续</button>
+        </div>
+      </div>
+    </dialog>
+    <!--__TOOLS_DIALOG__-->
+    <!--__IMPORT_DIALOG__-->
+    <input
+      id="file-import"
+      type="file"
+      accept=".md,.markdown,.txt,.docx,.json,.zip"
+      hidden
+    /><input id="theme-file" type="file" accept=".json" hidden /><input
+      id="image-file"
+      type="file"
+      accept="image/png,image/jpeg,image/webp,image/gif"
+      hidden
+    />
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="export-stage" aria-hidden="true"></div>
+    <script>
+      /*__MARKED__*/
+    </script>
+    <script>
+      /*__PURIFY__*/
+    </script>
+    <script>
+      /*__FFLATE__*/
+    </script>
+    <script>
+      /*__MODEL__*/
+      /*__STORE__*/
+      /*__MAMMOTH__*/
+      /*__DOCIMPORT__*/
+    </script>
+    <script>
+      /*__CORE__*/
+    </script>
+    <script>
+      /*__APP__*/
+    </script>
+  </body>
+</html>

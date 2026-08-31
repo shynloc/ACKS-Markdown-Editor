@@ -1,0 +1,192 @@
+.import-dialog {
+  width: min(780px, calc(100vw - 24px));
+  max-height: 90dvh;
+}
+.import-dialog .dialog-body {
+  overflow: auto;
+}
+.import-file-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.import-file-row strong {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.import-file-row button {
+  flex: none;
+}
+.import-preserve {
+  display: flex !important;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px !important;
+}
+.import-preserve input {
+  width: 20px !important;
+  height: 20px;
+  min-height: 0 !important;
+}
+.import-warnings {
+  margin: 14px 0;
+  padding: 14px 16px 14px 32px;
+  background: #fff6e7;
+  color: #6c4817;
+  font-size: 12px;
+  line-height: 1.7;
+  border-radius: 10px;
+}
+.import-warnings:empty {
+  display: none;
+}
+.import-preview {
+  border: 1px solid #dedee4;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.import-preview > h3 {
+  font-size: 12px;
+  padding: 12px 18px;
+  background: #f6f6f8;
+  margin: 0;
+}
+.import-render {
+  padding: 20px;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.import-render img {
+  max-width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+}
+.import-render h1 {
+  font-size: 26px;
+}
+.import-render h2 {
+  font-size: 21px;
+}
+.import-render pre {
+  white-space: pre-wrap;
+  background: #f4f4f6;
+  padding: 12px;
+}
+.import-render table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.import-render th,
+.import-render td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+.import-render a {
+  color: #315676;
+}
+.import-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 22px;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+.import-footer button {
+  min-height: 44px;
+}
+.import-render :is(ul, ol) {
+  padding-left: 1.5em;
+}
+.import-render li:has(> .task-mark) {
+  list-style: none;
+}
+.import-render span[data-md-color] strong,
+.import-render span[data-md-color] em {
+  color: inherit;
+}
+#import-open {
+  white-space: nowrap;
+  min-height: 44px;
+}
+#import-status {
+  font-size: 13px;
+  line-height: 1.6;
+}
+#import-source {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 12px;
+}
+.ms-doc sup,
+.md-doc sup {
+  vertical-align: super;
+  font-size: 0.75em;
+}
+.ms-doc sub,
+.md-doc sub {
+  vertical-align: sub;
+  font-size: 0.75em;
+}
+@media (max-width: 720px) {
+  .import-dialog {
+    max-height: 94dvh;
+  }
+  .import-dialog .form-row {
+    grid-template-columns: 1fr;
+  }
+  .header-actions #import-open {
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 11px;
+  }
+  .header-actions #import-open .icon {
+    display: none;
+  }
+  .import-render {
+    padding: 14px;
+  }
+  .app-header {
+    gap: 8px;
+  }
+  .brand-product {
+    display: none;
+  }
+}
+.import-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.import-dialog > .dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+.import-dialog > header,
+.import-footer {
+  flex: 0 0 auto;
+}
+.import-preserve {
+  flex-direction: row !important;
+}
+
+.import-warning-details {
+  padding: 10px 14px !important;
+  background: #fff6e7;
+  border: 0 !important;
+  border-radius: 10px;
+}
+.import-warning-details summary {
+  font-size: 12px;
+  color: #6c4817;
+}
+.import-warning-details .import-warnings {
+  padding: 8px 0 0 18px;
+  margin: 0;
+}

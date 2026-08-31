@@ -1,0 +1,150 @@
+<dialog
+  id="tools-dialog"
+  class="app-dialog tools-dialog"
+  aria-labelledby="tools-title"
+>
+  <header>
+    <h2 id="tools-title">编辑工具</h2>
+    <button
+      class="icon-button dialog-close"
+      data-icon="x"
+      aria-label="关闭编辑工具"
+    ></button>
+  </header>
+  <div class="dialog-body">
+    <p id="selection-hint" class="panel-help"></p>
+    <nav class="tool-tabs segmented" aria-label="编辑工具分类">
+      <button data-tool-tab="text" aria-pressed="true">文字</button
+      ><button data-tool-tab="paragraphs" aria-pressed="false">段落</button
+      ><button data-tool-tab="insert" aria-pressed="false">插入</button>
+    </nav>
+    <section id="tools-text">
+      <h3>文字格式</h3>
+      <div class="tool-grid">
+        <button data-edit="bold" data-icon="text-b">粗体</button
+        ><button data-edit="italic" data-icon="text-italic">斜体</button
+        ><button data-edit="strike" data-icon="text-strikethrough">
+          删除线</button
+        ><button data-edit="underline" data-icon="text-underline">下划线</button
+        ><button data-edit="highlight" data-icon="highlighter">高亮</button
+        ><button data-edit="inline-code" data-icon="code">行内代码</button
+        ><button data-edit="wavy">波浪线</button
+        ><button data-edit="dots">重点号</button
+        ><button data-edit="clear">清除样式</button>
+      </div>
+      <h3>字体与颜色</h3>
+      <div class="form-row">
+        <label
+          >字体<select id="inline-font">
+            <option value="system">跟随文章主题</option>
+            <option value="serif">宋体 / 衬线</option>
+            <option value="mono">等宽字体</option>
+          </select></label
+        ><label
+          >字号<select id="inline-size">
+            <option value="">跟随主题</option>
+            <option>12</option>
+            <option>14</option>
+            <option>16</option>
+            <option>18</option>
+            <option>20</option>
+            <option>24</option>
+          </select></label
+        >
+      </div>
+      <div class="form-row">
+        <label class="color-enable"
+          ><input
+            type="checkbox"
+            id="inline-color-enable"
+          />自定义文字颜色</label
+        ><input
+          type="color"
+          id="inline-color"
+          value="#b9480d"
+          aria-label="文字颜色"
+        />
+      </div>
+      <button id="inline-style-apply" class="secondary">应用到所选文字</button>
+      <p class="panel-help">
+        字体、颜色、波浪线与重点号使用安全扩展保存。其他 Markdown
+        阅读器可能只保留文字；公众号效果以输出预览和实际粘贴为准。
+      </p>
+    </section>
+    <section id="tools-paragraphs" class="hidden">
+      <h3>标题级别</h3>
+      <div class="tool-grid heading-grid">
+        <button data-edit="heading" data-level="1">H1 大标题</button
+        ><button data-edit="heading" data-level="2">H2 二级标题</button
+        ><button data-edit="heading" data-level="3">H3 三级标题</button
+        ><button data-edit="heading" data-level="4">H4 四级标题</button
+        ><button data-edit="paragraph">正文段落</button>
+      </div>
+      <h3>结构与列表</h3>
+      <div class="tool-grid">
+        <button data-edit="unordered" data-icon="list-bullets">无序列表</button
+        ><button data-edit="ordered" data-icon="list-numbers">有序列表</button
+        ><button data-edit="task" data-icon="check-square">任务列表</button
+        ><button data-edit="quote" data-icon="quotes">引用</button
+        ><button data-edit="divider" data-icon="minus">分隔线</button>
+      </div>
+    </section>
+    <section id="tools-insert" class="hidden">
+      <div class="tool-grid">
+        <button data-insert="link" data-icon="link-simple">链接</button
+        ><button data-edit="image" data-icon="image">图片</button
+        ><button data-insert="code" data-icon="code-block">代码块</button
+        ><button data-insert="table" data-icon="table">表格</button>
+      </div>
+      <div id="insert-link" class="insert-form hidden">
+        <h3>插入链接</h3>
+        <label>显示文字<input id="link-text" placeholder="链接文字" /></label
+        ><label
+          >链接地址<input
+            id="link-url"
+            type="url"
+            placeholder="https://…" /></label
+        ><button id="link-apply" class="primary">插入链接</button>
+      </div>
+      <div id="insert-code" class="insert-form hidden">
+        <h3>插入代码块</h3>
+        <label
+          >代码语言<select id="code-language">
+            <option value="">纯文本</option>
+            <option value="js">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="json">JSON</option>
+            <option value="bash">Shell</option>
+            <option value="sql">SQL</option>
+          </select></label
+        ><button id="code-apply" class="primary">插入代码块</button>
+      </div>
+      <div id="insert-table" class="insert-form hidden">
+        <h3>插入表格</h3>
+        <div class="form-row">
+          <label
+            >列数<select id="table-cols">
+              <option>2</option>
+              <option selected>3</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+            </select></label
+          ><label
+            >数据行数<select id="table-rows">
+              <option>1</option>
+              <option selected>2</option>
+              <option>3</option>
+              <option>4</option>
+              <option>5</option>
+            </select></label
+          >
+        </div>
+        <div id="table-builder" class="table-builder"></div>
+        <button id="table-apply" class="primary">插入表格</button>
+      </div>
+    </section>
+  </div>
+</dialog>

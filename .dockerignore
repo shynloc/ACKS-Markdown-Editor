@@ -1,0 +1,14 @@
+.git
+.github
+backups
+qa
+extracted
+node_modules
+src
+tests
+scripts
+vendor
+docs
+*.md
+!README.md
+npm-debug.log*

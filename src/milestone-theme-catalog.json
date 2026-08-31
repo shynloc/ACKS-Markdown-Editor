@@ -1,0 +1,80 @@
+[
+  {
+    "key": "clean",
+    "name": "Clean Reading",
+    "nameZh": "清隽阅读",
+    "mode": "both"
+  },
+  {
+    "key": "business",
+    "name": "Business Report",
+    "nameZh": "商务报告",
+    "mode": "both"
+  },
+  {
+    "key": "technical",
+    "name": "Technical Doc",
+    "nameZh": "技术文档",
+    "mode": "both"
+  },
+  {
+    "key": "darkcode",
+    "name": "Dark Code",
+    "nameZh": "暗夜代码",
+    "mode": "dark"
+  },
+  {
+    "key": "social",
+    "name": "Social Card",
+    "nameZh": "社交长图",
+    "mode": "both"
+  },
+  {
+    "key": "academic",
+    "name": "Academic",
+    "nameZh": "学术论文",
+    "mode": "light"
+  },
+  {
+    "key": "wechat",
+    "name": "WeChat Article",
+    "nameZh": "公众号文章",
+    "mode": "both"
+  },
+  {
+    "key": "magazine",
+    "name": "Magazine",
+    "nameZh": "杂志随笔",
+    "mode": "both"
+  },
+  {
+    "key": "aireport",
+    "name": "AI Report",
+    "nameZh": "AI 报告",
+    "mode": "both"
+  },
+  {
+    "key": "euro",
+    "name": "European Classic",
+    "nameZh": "欧式古典",
+    "mode": "both"
+  },
+  {
+    "key": "cnclassic",
+    "name": "Chinese Classic",
+    "nameZh": "中式古典",
+    "mode": "both"
+  },
+  {
+    "key": "cnvertical",
+    "name": "Chinese Vertical",
+    "nameZh": "中式竖排",
+    "mode": "both"
+  },
+  {
+    "key": "poster",
+    "name": "Avant-garde Poster",
+    "nameZh": "前卫海报",
+    "mode": "both"
+  }
+]

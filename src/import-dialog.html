@@ -1,0 +1,73 @@
+<dialog
+  id="import-dialog"
+  class="app-dialog import-dialog"
+  aria-labelledby="import-title"
+>
+  <header>
+    <h2 id="import-title">导入文档</h2>
+    <button
+      class="icon-button dialog-close"
+      data-icon="x"
+      aria-label="关闭导入窗口"
+    ></button>
+  </header>
+  <div class="dialog-body">
+    <p class="panel-help">
+      支持 Markdown、TXT、DOCX 和 ACKS 文档包。文件在本机转换，不上传服务器。
+    </p>
+    <div class="import-file-row">
+      <button id="import-pick" class="secondary" data-icon="upload-simple">
+        选择文件</button
+      ><strong id="import-name">尚未选择文件</strong>
+    </div>
+    <p id="import-status" role="status">先选择文件，再检查转换结果。</p>
+    <div class="form-row">
+      <label
+        >导入位置<select id="import-destination">
+          <option value="replace">替换当前文稿（先保留历史）</option>
+          <option value="append">追加到当前文稿末尾</option>
+        </select></label
+      >
+      <label id="import-encoding-row" class="hidden"
+        >文本编码<select id="import-encoding">
+          <option value="auto">自动识别</option>
+          <option value="utf-8">UTF-8</option>
+          <option value="utf-16le">UTF-16 LE</option>
+          <option value="utf-16be">UTF-16 BE</option>
+          <option value="gb18030">GB18030 / GBK</option>
+        </select></label
+      >
+    </div>
+    <label id="import-preserve-row" class="import-preserve hidden"
+      ><input
+        id="import-preserve"
+        type="checkbox"
+      />尽量保留Word文字颜色、字号与字体类别</label
+    >
+    <p class="panel-help">
+      默认由文章主题统一字体与颜色。Word标题、粗斜体、下划线、列表、链接、图片和表格尽量保留；分页、页眉页脚、浮动位置等不复刻。
+    </p>
+    <p id="import-stats" class="panel-help"></p>
+    <details id="import-warning-details" class="import-warning-details hidden">
+      <summary id="import-warning-count">转换提示</summary>
+      <ul id="import-warnings" class="import-warnings"></ul>
+    </details>
+    <section class="import-preview" aria-label="转换后预览">
+      <h3>转换后预览</h3>
+      <div id="import-render" class="import-render"></div>
+    </section>
+    <details>
+      <summary>查看转换后的 Markdown</summary>
+      <textarea
+        id="import-source"
+        readonly
+        aria-label="转换后的 Markdown"
+        rows="8"
+      ></textarea>
+    </details>
+  </div>
+  <footer class="import-footer">
+    <button class="secondary dialog-close">取消</button
+    ><button id="import-apply" class="primary" disabled>确认导入</button>
+  </footer>
+</dialog>

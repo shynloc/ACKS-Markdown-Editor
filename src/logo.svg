@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 893 845.63" role="img" aria-labelledby="title desc">
+  <title id="title">ACKS symbol - black</title>
+  <desc id="desc">Official black ACKS modular symbol.</desc>
+  <g fill="#000000">
+    <path d="M421.06 225.16V0L0 377.2h262c11.84-75.87 76.17-136.67 159.06-152.04Z"/>
+    <path d="M671.945 0A221.055 221.055 0 0 0 450.89 221.055V403.52h221.055V221.055H893A221.055 221.055 0 0 0 671.945 0Z"/>
+    <path d="M0 403.52h450.89v221.055H225l225.89 221.055H315.66l-89.34-95.74v95.74H0Z"/>
+    <path d="M671.945 403.52A221.055 221.055 0 1 1 450.89 624.575h221.055Z"/>
+  </g>
+</svg>

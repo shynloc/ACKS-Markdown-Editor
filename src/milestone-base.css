@@ -1,0 +1,97 @@
+/* Isolated article surface: no application dark-mode or legacy .md-doc selectors. */
+.ms-doc {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 28px 24px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body-font);
+  font-size: var(--body-size);
+  line-height: var(--line-height);
+  letter-spacing: var(--letter-spacing);
+  overflow-wrap: anywhere;
+  -webkit-font-smoothing: antialiased;
+}
+.ms-doc
+  :where(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    blockquote,
+    ul,
+    ol,
+    li,
+    pre,
+    code,
+    table,
+    thead,
+    tbody,
+    tr,
+    th,
+    td,
+    hr
+  ) {
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+  box-sizing: border-box;
+  text-indent: 0;
+  text-align: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+.ms-doc :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--heading-font);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.ms-doc :where(strong, b) {
+  font-weight: 700;
+  color: var(--emphasis);
+}
+.ms-doc :where(em, i) {
+  font-style: italic;
+}
+.ms-doc :where(a) {
+  color: var(--link);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+.ms-doc :where(ul) {
+  list-style: disc;
+}
+.ms-doc :where(ol) {
+  list-style: decimal;
+}
+.ms-doc :where(li) {
+  display: list-item;
+}
+.ms-doc li.task-list-item {
+  list-style: none;
+}
+.ms-doc :where(img) {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+.ms-doc :where(pre) {
+  overflow: auto;
+}
+.ms-doc :where(pre code) {
+  font-family: Menlo, Consolas, monospace;
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ms-doc :where(table) {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+.ms-doc :where(blockquote p) {
+  margin: 0;
+}

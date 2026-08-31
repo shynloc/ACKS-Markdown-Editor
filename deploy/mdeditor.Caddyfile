@@ -1,0 +1,20 @@
+mdeditor.acks.com.cn {
+    tls {
+        issuer acme {
+            disable_tlsalpn_challenge
+            timeout 5m
+        }
+    }
+
+    encode zstd gzip
+
+    header {
+        -Server
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+    }
+
+    reverse_proxy 127.0.0.1:5703
+}

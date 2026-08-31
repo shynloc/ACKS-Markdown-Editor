@@ -1,0 +1,162 @@
+{
+  "gold": {
+    "type": "svg",
+    "name": "阶梯金箔 / Art Deco",
+    "file": "gold.svg"
+  },
+  "blue": {
+    "type": "svg",
+    "name": "坐标蓝图",
+    "file": "blue.svg"
+  },
+  "dark": {
+    "type": "svg",
+    "name": "日蚀轨道",
+    "file": "dark.svg"
+  },
+  "clean-green": {
+    "type": "svg",
+    "name": "双叶抽芽",
+    "file": "clean-green.svg"
+  },
+  "red-white": {
+    "type": "svg",
+    "name": "新闻裁切与铅条",
+    "file": "red-white.svg"
+  },
+  "graphite": {
+    "type": "svg",
+    "name": "瑞士阶构",
+    "file": "graphite.svg"
+  },
+  "zen": {
+    "type": "svg",
+    "name": "枯山水砂纹与置石",
+    "file": "zen.svg"
+  },
+  "receipt": {
+    "type": "svg",
+    "name": "打孔票据与条码",
+    "file": "receipt.svg"
+  },
+  "olive-notes": {
+    "type": "svg",
+    "name": "田野等高线",
+    "file": "olive-notes.svg"
+  },
+  "ms-blue-purple": {
+    "type": "svg",
+    "name": "双墨矩阵榫接",
+    "file": "ms-blue-purple.svg"
+  },
+  "dopamine": {
+    "type": "svg",
+    "name": "跳色圆弧积木",
+    "file": "dopamine.svg"
+  },
+  "song-ink": {
+    "type": "svg",
+    "name": "青瓷小瓶与疏梅",
+    "file": "song-ink.svg"
+  },
+  "neu-soft": {
+    "type": "svg",
+    "name": "柔纸折角浮雕",
+    "file": "neu-soft.svg"
+  },
+  "neo-brutalism": {
+    "type": "svg",
+    "name": "锯齿剪纸与硬折线",
+    "file": "neo-brutalism.svg"
+  },
+  "maximalism": {
+    "type": "svg",
+    "name": "双色波纹织带",
+    "file": "maximalism.svg"
+  },
+  "guochao": {
+    "type": "svg",
+    "name": "朱砂云雷回纹",
+    "file": "guochao.svg"
+  },
+  "dreamglow": {
+    "type": "svg",
+    "name": "浮光彩窗花结",
+    "file": "dreamglow.svg"
+  },
+  "ms-clean": {
+    "type": "svg",
+    "name": "展开的书页",
+    "file": "ms-clean.svg"
+  },
+  "ms-business": {
+    "type": "svg",
+    "name": "报告柱廊",
+    "file": "ms-business.svg"
+  },
+  "ms-technical": {
+    "type": "svg",
+    "name": "协议分支电路",
+    "file": "ms-technical.svg"
+  },
+  "ms-darkcode": {
+    "type": "svg",
+    "name": "终端光标",
+    "file": "ms-darkcode.svg"
+  },
+  "ms-social": {
+    "type": "svg",
+    "name": "交错对话气泡",
+    "file": "ms-social.svg"
+  },
+  "ms-academic": {
+    "type": "svg",
+    "name": "几何证明图",
+    "file": "ms-academic.svg"
+  },
+  "ms-wechat": {
+    "type": "svg",
+    "name": "文章书签",
+    "file": "ms-wechat.svg"
+  },
+  "ms-magazine": {
+    "type": "svg",
+    "name": "杂志星标与栏线",
+    "file": "ms-magazine.svg"
+  },
+  "ms-aireport": {
+    "type": "svg",
+    "name": "推理节点菱网",
+    "file": "ms-aireport.svg"
+  },
+  "ms-euro": {
+    "type": "svg",
+    "name": "古典莨苕卷叶",
+    "file": "ms-euro.svg"
+  },
+  "ms-cnclassic": {
+    "type": "svg",
+    "name": "中式菱格窗棂",
+    "file": "ms-cnclassic.svg"
+  },
+  "ms-cnvertical": {
+    "type": "svg",
+    "name": "线装书穿线",
+    "file": "ms-cnvertical.svg"
+  },
+  "ms-poster": {
+    "type": "svg",
+    "name": "网点圆与斜切版痕",
+    "file": "ms-poster.svg"
+  },
+  "y3k": {
+    "type": "image",
+    "name": "液态玻璃结",
+    "asset": "glass-ribbon"
+  },
+  "collage": {
+    "type": "image",
+    "name": "手撕纸边",
+    "asset": "paper-edge"
+  }
+}
