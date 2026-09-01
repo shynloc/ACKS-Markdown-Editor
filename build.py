@@ -6,13 +6,52 @@ import os
 import re
 
 ROOT = Path(__file__).resolve().parent
-def read(path):
-    return (ROOT / path).read_text()
-def script(text):
-    return text.replace('</script', '<\\/script')
 
-app = read('src/app.js').replace('const ICONS = {}; // ICONS_BUNDLE', 'const ICONS = ' + read('src/icons.json') + ';')
-app = app.replace('/*__THEME_RENDER__*/', read('src/theme-render.js'))
+
+def read(path):
+    return (ROOT / path).read_text(encoding="utf-8")
+
+
+def script(text):
+    return text.replace("</script", "<\\/script")
+
+
+default_source = read("src/default-article.md")
+default_assets = {}
+for asset_id, filename, mime, label in [
+    ("img-cover", "article-cover.webp", "image/webp", "ACKS Markdown Editor 文章封面"),
+    ("img-workflow", "article-workflow.jpg", "image/jpeg", "ACKS Markdown Editor 架构图"),
+    ("img-links", "article-links.jpg", "image/jpeg", "体验地址与 GitHub 地址卡"),
+]:
+    raw = (ROOT / "src/default-assets" / filename).read_bytes()
+    default_assets[asset_id] = {
+        "name": label,
+        "mime": mime,
+        "data": "data:"
+        + mime
+        + ";base64,"
+        + base64.b64encode(raw).decode("ascii"),
+    }
+
+app = read("src/app.js").replace(
+    "const ICONS = {}; // ICONS_BUNDLE",
+    "const ICONS = " + read("src/icons.json") + ";",
+)
+app = re.sub(
+    r'const DEFAULT_SOURCE\s*=\s*""; // DEFAULT_SOURCE_BUNDLE',
+    lambda _: "const DEFAULT_SOURCE="
+    + json.dumps(default_source, ensure_ascii=False)
+    + ";",
+    app,
+)
+app = re.sub(
+    r"const DEFAULT_ASSETS\s*=\s*\{\}; // DEFAULT_ASSETS_BUNDLE",
+    lambda _: "const DEFAULT_ASSETS="
+    + json.dumps(default_assets, ensure_ascii=False)
+    + ";",
+    app,
+)
+app = app.replace("/*__THEME_RENDER__*/", read("src/theme-render.js"))
 app = app.replace('/*__EDITING_TOOLS__*/', read('src/editing-tools.js'))
 app = app.replace('/*__SVG_SAFETY__*/', read('src/svg-safety.js'))
 app = app.replace('/*__IMPORT_UI__*/', read('src/import-ui.js'))

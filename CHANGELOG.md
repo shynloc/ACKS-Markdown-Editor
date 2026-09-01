@@ -2,6 +2,20 @@
 
 All notable changes to ACKS Markdown Editor are documented here.
 
+## [1.0.1] - 2026-09-01
+
+### Added
+
+- Replaced the minimal sample with a publishable project-introduction article.
+- Added an original cover, architecture diagram and scannable experience/source card.
+- Bundled all article images into the local document model for complete JSON and ZIP exports.
+
+### Changed
+
+- New documents now open with the Gold Classic theme and the introduction article.
+- Renamed the sample action to **Load introduction article** while preserving the current draft first.
+- Expanded regression coverage for the default article, semantic Markdown and image round trips.
+
 ## [1.0.0] - 2026-09-01
 
 ### Added
@@ -23,3 +37,4 @@ All notable changes to ACKS Markdown Editor are documented here.
 - Added 59 Node regression tests and browser conversion assertions.
 
 [1.0.0]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.0.0
+[1.0.1]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.0.1

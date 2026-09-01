@@ -1,16 +1,16 @@
 {
   "name": "acks-markdown-editor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Local-first Markdown editor with 43 rendering themes, DOCX import and WeChat-ready HTML export.",
   "scripts": {
     "build": "python3 build.py",
-    "test": "npm run build && node tests/regression.cjs && node tests/feedback.cjs && node tests/theme-revision.cjs && node tests/theme-integration.cjs && node tests/release-fixes.cjs",
+    "test": "npm run build && node tests/regression.cjs && node tests/feedback.cjs && node tests/theme-revision.cjs && node tests/theme-integration.cjs && node tests/release-fixes.cjs && node tests/default-article.cjs",
     "format": "prettier --write \"src/**/*.{js,css,html,json}\" \"tests/**/*.cjs\" \"scripts/**/*.{js,cjs}\" \"*.{md,json}\"",
     "format:check": "prettier --check \"src/**/*.{js,css,html,json}\" \"tests/**/*.cjs\" \"scripts/**/*.{js,cjs}\" \"*.{md,json}\""
   },
   "devDependencies": {
-    "postcss": "8.5.10",
+    "postcss": "8.5.26",
     "prettier": "3.6.2"
   },
   "engines": {

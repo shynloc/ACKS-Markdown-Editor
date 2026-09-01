@@ -30,8 +30,8 @@
       el.prepend(icon);
     });
   icons(document);
-  const DEFAULT_SOURCE =
-    '# 让技术有用，也有温度\n\n工具的价值，在于让每一次表达更轻松。\n\n## 从内容开始\n\n把复杂留给系统，把清晰留给读者。\n\n> 让排版，服务内容。\n\n## 让工具退后\n\n工具应该安静地在背后工作，真正的主角，始终是内容本身。\n\n- 保留写作的节奏\n  - 用清晰的结构组织想法\n- 让排版服务内容\n- 发布前认真检查\n\n```js\nfunction create() {\n  return "Hello, ACKS";\n}\n```\n\n| 内容 | 形式 |\n| --- | --- |\n| 表达 | 清晰而克制 |\n| 工具 | 可靠而顺手 |\n';
+  const DEFAULT_SOURCE = ""; // DEFAULT_SOURCE_BUNDLE
+  const DEFAULT_ASSETS = {}; // DEFAULT_ASSETS_BUNDLE
   const MINI_SOURCE =
     "# 让技术有用，也有温度\n\n工具的价值，在于让每一次表达更轻松。\n\n## 从内容开始\n\n把复杂留给系统，把清晰留给读者。\n\n> 让排版，服务内容。";
   const STORE = "acks-md-document-v3",
@@ -470,13 +470,18 @@
       }
       state = normalizeDocument({
         source: old === null ? DEFAULT_SOURCE : old,
-        themeId: old === null ? "song-ink" : "gold",
+        assets: old === null ? clone(DEFAULT_ASSETS) : {},
+        themeId: "gold",
         recipeId: "default",
       });
     }
   } catch {
     initialStorageError = true;
-    state = normalizeDocument({ source: DEFAULT_SOURCE, themeId: "song-ink" });
+    state = normalizeDocument({
+      source: DEFAULT_SOURCE,
+      assets: clone(DEFAULT_ASSETS),
+      themeId: "gold",
+    });
   }
   lastCheckpoint = JSON.stringify(state);
   function effective(settings = draft || state) {
@@ -1699,12 +1704,14 @@
       toast(out.notice);
     }
     if (action === "sample") {
-      if (!(await ask("将先保存当前版本，然后载入示例。继续吗？"))) return;
+      if (!(await ask("将先保存当前版本，然后载入内置介绍文章。继续吗？")))
+        return;
       if (!saveSnapshot({ quiet: true })) return;
       checkpoint();
       state = normalizeDocument({
         source: DEFAULT_SOURCE,
-        themeId: "song-ink",
+        assets: clone(DEFAULT_ASSETS),
+        themeId: "gold",
       });
       scheduleSave();
       setMode("write");

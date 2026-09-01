@@ -15,7 +15,7 @@ host-managed Caddy reverse proxy.
 ## Build an immutable image
 
 ```bash
-VERSION=1.0.0
+VERSION=1.0.1
 VCS_REF=$(git rev-parse HEAD)
 IMAGE_TAG="acks-markdown-editor:${VERSION}-${VCS_REF:0:7}"
 
