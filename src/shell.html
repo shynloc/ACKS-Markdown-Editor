@@ -23,8 +23,26 @@
           >ACKS <span class="brand-product">Markdown</span></span
         ></a
       >
-      <span id="save-state" class="save-state" role="status">正在读取草稿</span>
+      <span id="save-state" class="save-state" role="status"
+        >正在读取本机文章</span
+      >
       <div class="header-actions">
+        <button
+          id="new-document"
+          class="secondary"
+          data-icon="plus"
+          aria-label="新建空白文章"
+        >
+          <span class="action-label">新建</span>
+        </button>
+        <button
+          id="save-document"
+          class="secondary"
+          data-icon="check"
+          aria-label="保存当前文章到此浏览器"
+        >
+          <span class="action-label">保存</span>
+        </button>
         <button
           id="import-open"
           class="secondary"
@@ -107,11 +125,11 @@
         id="outline-toggle"
         class="icon-button"
         data-icon="sidebar-simple"
-        aria-label="切换文章大纲"
+        aria-label="切换本机文章柜与文章大纲"
         aria-expanded="true"
       ></button>
       <span id="document-title">未命名文档</span
-      ><span id="mobile-save" role="status">本机草稿</span>
+      ><span id="mobile-save" role="status">浏览器本地</span>
       <button
         id="theme-current"
         class="theme-current"
@@ -128,10 +146,55 @@
       <button id="conflict-download" class="secondary">下载本窗口文稿</button
       ><button id="conflict-load" class="secondary">备份并载入较新版本</button>
     </aside>
+    <button
+      id="library-scrim"
+      class="library-scrim hidden"
+      aria-label="关闭本机文章柜"
+    ></button>
     <main class="workspace">
-      <aside id="outline" class="outline" aria-label="文章大纲">
-        <div class="outline-head">文章大纲</div>
-        <nav id="outline-items"></nav>
+      <aside id="outline" class="outline" aria-label="本机文章柜与文章大纲">
+        <section class="library-panel" aria-labelledby="library-title">
+          <div class="library-head">
+            <button
+              id="library-toggle"
+              aria-expanded="true"
+              aria-controls="library-body"
+            >
+              <span id="library-title">本机文章柜</span
+              ><span id="library-count" class="library-count">0</span
+              ><span class="library-caret" data-icon="caret-up"></span>
+            </button>
+            <button
+              id="library-new"
+              class="icon-button"
+              data-icon="plus"
+              aria-label="新建空白文章"
+            ></button>
+          </div>
+          <div id="library-body" class="library-body">
+            <div class="local-storage-warning">
+              <strong data-icon="warning">只保存在此浏览器</strong>
+              <p>
+                清理浏览器缓存或网站数据、使用无痕模式、更换浏览器，都可能丢失文章。重要内容请定期下载完整备份。
+              </p>
+              <button
+                id="library-export"
+                class="secondary"
+                data-icon="download-simple"
+              >
+                下载当前全文
+              </button>
+            </div>
+            <p id="library-status" class="library-status" role="status">
+              正在读取本机文章…
+            </p>
+            <nav id="library-items" aria-label="本机文章"></nav>
+          </div>
+        </section>
+        <section class="outline-section" aria-labelledby="outline-title">
+          <div id="outline-title" class="outline-head">当前文章大纲</div>
+          <nav id="outline-items"></nav>
+        </section>
         <p class="outline-hint">点击段落编辑<br />⌘ / Ctrl + S 保存</p>
       </aside>
       <section class="work-area" aria-label="文章工作区">
@@ -458,7 +521,7 @@
       aria-labelledby="history-title"
     >
       <header>
-        <h2 id="history-title">文档历史</h2>
+        <h2 id="history-title">当前文章版本</h2>
         <button
           class="icon-button dialog-close"
           data-icon="x"
@@ -514,6 +577,7 @@
     <script>
       /*__MODEL__*/
       /*__STORE__*/
+      /*__LIBRARY__*/
       /*__MAMMOTH__*/
       /*__DOCIMPORT__*/
     </script>

@@ -2,6 +2,28 @@
 
 All notable changes to ACKS Markdown Editor are documented here.
 
+## [1.1.0] - 2026-09-01
+
+### Added
+
+- Added visible **New** and **Save** actions for starting a blank article and explicitly saving it.
+- Added an expandable local article cabinet with article switching, modification time, size, backup and protected deletion.
+- Added a persistent local-storage warning and a one-click complete article backup beside the article list.
+- Added an empty-document writing state with a focused Markdown editor instead of forcing users to delete the introduction template.
+
+### Changed
+
+- Added IndexedDB-backed multi-document persistence while retaining the existing Web Locks conflict protection for the active draft.
+- Migrated the current browser draft into the article cabinet automatically on first use.
+- Scoped version history to the active article while keeping legacy and conflict-recovery snapshots accessible.
+- Added a mobile article-cabinet drawer and accessible icon labels for New and Save.
+- Manual Save now requests persistent browser storage where supported, without claiming that local data is server-backed.
+
+### Reliability
+
+- Added document-library validation tests for titles, previews, metadata, deep cloning, resource sizing and identifier safety.
+- Verified new/save/switch/reload persistence in a real browser and confirmed the mobile layout has no horizontal overflow.
+
 ## [1.0.1] - 2026-09-01
 
 ### Added
@@ -38,3 +60,4 @@ All notable changes to ACKS Markdown Editor are documented here.
 
 [1.0.0]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.0.0
 [1.0.1]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.0.1
+[1.1.0]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.1.0

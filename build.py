@@ -71,6 +71,7 @@ replacements = {
     '/*__CORE__*/': script(read('src/theme-core.js')+'\n'+read('src/theme-revision.js')+'\n'+catalog),
     '/*__MODEL__*/': script(read('src/editor-model.js')),
     '/*__STORE__*/': script(read('src/document-store.js')),
+    '/*__LIBRARY__*/': script(read('src/document-library.js')),
     '/*__DOCIMPORT__*/': script(read('src/document-import.js')),
     '/*__MAMMOTH__*/': script(read('vendor/mammoth.js')),
     '/*__FFLATE__*/': script(read('vendor/fflate.js')),

@@ -36,7 +36,8 @@
     "# 让技术有用，也有温度\n\n工具的价值，在于让每一次表达更轻松。\n\n## 从内容开始\n\n把复杂留给系统，把清晰留给读者。\n\n> 让排版，服务内容。";
   const STORE = "acks-md-document-v3",
     LIBRARY = "acks-md-themes-v2",
-    HISTORY = "acks-md-history-v3";
+    HISTORY = "acks-md-history-v3",
+    ACTIVE_DOCUMENT = "acks-md-active-document-v1";
   const MAX_SOURCE = 3 * 1024 * 1024;
   let mode = "write",
     previewKind = "rich",
@@ -57,6 +58,10 @@
     legacyHistory = false,
     initialStorageError = false;
   let initialDocumentRaw;
+  let articleLibrary = null,
+    activeDocumentId = null,
+    libraryRefresh = 0,
+    libraryStorageError = false;
   let blocks = [],
     sourceSelection = { start: 0, end: 0 };
 
@@ -586,10 +591,21 @@
       if (JSON.stringify({ ...state, updatedAt: "" }) !== contentBefore)
         return false;
       state.updatedAt = snapshot.updatedAt;
+      if (articleLibrary && activeDocumentId) {
+        try {
+          await articleLibrary.put(activeDocumentId, snapshot);
+          libraryStorageError = false;
+          renderLibrary();
+        } catch {
+          libraryStorageError = true;
+        }
+      }
       dirty = false;
       for (const id of ["save-state", "mobile-save"]) {
-        $(id).textContent = "已保存到本机";
-        $(id).classList.remove("error");
+        $(id).textContent = libraryStorageError
+          ? "当前稿已保存 · 文章柜异常"
+          : "已保存到此浏览器";
+        $(id).classList.toggle("error", libraryStorageError);
       }
       return true;
     } catch {
@@ -742,6 +758,50 @@
     tokenize();
     const root = $("writer");
     root.replaceChildren();
+    if (!blocks.length) {
+      const empty = document.createElement("section"),
+        title = document.createElement("h2"),
+        help = document.createElement("p"),
+        editor = document.createElement("textarea");
+      empty.className = "empty-document";
+      title.textContent = "开始一篇新文章";
+      help.textContent =
+        "输入 Markdown，或先写下一个标题。内容会自动保存到此浏览器。";
+      editor.className = "block-editor empty-document-editor";
+      editor.spellcheck = false;
+      editor.placeholder = "# 输入文章标题\n\n从这里开始写作…";
+      editor.setAttribute("aria-label", "编辑空白 Markdown 文章");
+      let started = false;
+      editor.addEventListener("focus", () =>
+        $("format-dock").classList.remove("hidden"),
+      );
+      editor.addEventListener("input", () => {
+        if (!started) {
+          checkpoint();
+          started = true;
+        }
+        setSource(editor.value, { record: false });
+        resizeEditor(editor);
+      });
+      editor.addEventListener("compositionstart", () => (composing = true));
+      editor.addEventListener("compositionend", () => {
+        composing = false;
+        setSource(editor.value, { record: false });
+        resizeEditor(editor);
+      });
+      editor.addEventListener("blur", () => {
+        setTimeout(() => {
+          if (document.activeElement.closest?.("#format-dock")) return;
+          $("format-dock").classList.add("hidden");
+          if (state.source.trim()) renderWriter();
+        }, 80);
+      });
+      empty.append(title, help, editor);
+      root.append(empty);
+      renderOutline();
+      requestAnimationFrame(() => editor.focus());
+      return;
+    }
     for (let i = 0; i < blocks.length; i++) {
       const block = blocks[i],
         el = document.createElement("div");
@@ -921,10 +981,23 @@
         end: $("src").selectionEnd,
       }),
   );
+  function closeLibraryDrawer() {
+    document.body.classList.remove("library-drawer-open");
+    $("library-scrim").classList.add("hidden");
+    if (matchMedia("(max-width: 720px)").matches)
+      $("outline-toggle").setAttribute("aria-expanded", "false");
+  }
   $("outline-toggle").addEventListener("click", () => {
+    if (matchMedia("(max-width: 720px)").matches) {
+      const open = document.body.classList.toggle("library-drawer-open");
+      $("library-scrim").classList.toggle("hidden", !open);
+      $("outline-toggle").setAttribute("aria-expanded", String(open));
+      return;
+    }
     const hidden = document.body.classList.toggle("outline-hidden");
     $("outline-toggle").setAttribute("aria-expanded", String(!hidden));
   });
+  $("library-scrim").addEventListener("click", closeLibraryDrawer);
   function renderPreview() {
     try {
       renderTheme($("preview"), state.source);
@@ -1488,6 +1561,272 @@
         .slice(0, 60) || "ACKS文章"
     );
   }
+  function titleForDocument(document) {
+    return DOCUMENT_LIBRARY.titleFromSource(document?.source || "");
+  }
+  function safeFileTitle(value) {
+    return (
+      String(value || "未命名文章")
+        .replace(/[\\/:*?"<>|]/g, "_")
+        .slice(0, 60) || "未命名文章"
+    );
+  }
+  function exportCompleteDocument(document = state, title = fileTitle()) {
+    try {
+      download(
+        JSON.stringify(MODEL.portableDocument(document, parser), null, 2),
+        safeFileTitle(title) + ".acks.json",
+      );
+      toast("已下载当前全文、图片资源与排版设置");
+      return true;
+    } catch (error) {
+      toast("导出失败：" + error.message, true);
+      return false;
+    }
+  }
+  function formatDocumentDate(value) {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return "时间未知";
+    const today = new Date();
+    const sameDay = date.toDateString() === today.toDateString();
+    return sameDay
+      ? "今天 " +
+          date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : date.toLocaleDateString([], { month: "numeric", day: "numeric" });
+  }
+  function formatBytes(bytes) {
+    const value = Number(bytes) || 0;
+    return value < 1024 * 1024
+      ? Math.max(1, Math.round(value / 1024)) + " KB"
+      : (value / 1024 / 1024).toFixed(1) + " MB";
+  }
+  function setActiveDocumentId(id) {
+    activeDocumentId = id;
+    try {
+      localStorage.setItem(ACTIVE_DOCUMENT, id);
+    } catch {
+      libraryStorageError = true;
+    }
+  }
+  function resetDocumentSession(next, id) {
+    activeBlock = null;
+    draft = null;
+    composing = false;
+    state = normalizeDocument(next);
+    dirty = false;
+    undoStack = [];
+    redoStack = [];
+    lastCheckpoint = JSON.stringify(state);
+    sourceSelection = { start: 0, end: 0 };
+    setActiveDocumentId(id);
+    $("save-conflict").classList.add("hidden");
+    for (const key of ["save-state", "mobile-save"]) {
+      $(key).textContent = "已保存到此浏览器";
+      $(key).classList.remove("error");
+    }
+    setMode("write");
+    closeLibraryDrawer();
+  }
+  async function writeCurrentMirror(document) {
+    if (!documentStore) throw new Error("当前浏览器无法安全保存文稿");
+    const result = await documentStore.save(document);
+    if (!result.ok) throw new Error("文稿冲突，切换已暂停");
+  }
+  async function switchArticle(id) {
+    if (!articleLibrary || !id || id === activeDocumentId) return;
+    try {
+      finishBlock();
+      if (dirty && !(await saveNow())) return;
+      const record = await articleLibrary.get(id);
+      if (!record) throw new Error("没有找到这篇本机文章");
+      const next = normalizeDocument(record.document);
+      await writeCurrentMirror(next);
+      resetDocumentSession(next, id);
+      await renderLibrary();
+      toast("已打开《" + record.title + "》");
+    } catch (error) {
+      toast(error.message || "文章切换失败", true);
+    }
+  }
+  async function createNewArticle({ quiet = false } = {}) {
+    if (!articleLibrary) {
+      toast("本机文章柜尚未就绪，未清空当前稿件", true);
+      return false;
+    }
+    try {
+      finishBlock();
+      if (dirty && !(await saveNow())) return false;
+      const id = articleLibrary.createId();
+      const next = normalizeDocument({
+        source: "",
+        assets: {},
+        themeId: "gold",
+        recipeId: "default",
+      });
+      next.updatedAt = new Date().toISOString();
+      await articleLibrary.put(id, next);
+      try {
+        await writeCurrentMirror(next);
+      } catch (error) {
+        await articleLibrary.remove(id).catch(() => {});
+        throw error;
+      }
+      resetDocumentSession(next, id);
+      await renderLibrary();
+      if (!quiet) toast("已新建空白文章；原文章仍保存在本机文章柜");
+      return true;
+    } catch (error) {
+      toast("新建失败：" + error.message, true);
+      return false;
+    }
+  }
+  async function removeArticle(id) {
+    if (!articleLibrary) return;
+    const record = await articleLibrary.get(id);
+    if (!record) return renderLibrary();
+    if (
+      !(await ask(
+        "从此浏览器删除《" +
+          record.title +
+          "》？删除后无法从服务器找回，请先下载重要文章备份。",
+      ))
+    )
+      return;
+    try {
+      if (id === activeDocumentId) {
+        const others = (await articleLibrary.list()).filter(
+          (item) => item.id !== id,
+        );
+        if (others.length) await switchArticle(others[0].id);
+        else if (!(await createNewArticle({ quiet: true }))) return;
+      }
+      await articleLibrary.remove(id);
+      await renderLibrary();
+      toast("文章已从此浏览器删除");
+    } catch (error) {
+      toast("删除失败：" + error.message, true);
+    }
+  }
+  async function exportStoredArticle(id) {
+    if (!articleLibrary) return;
+    try {
+      const record =
+        id === activeDocumentId
+          ? { title: titleForDocument(state), document: state }
+          : await articleLibrary.get(id);
+      if (!record) throw new Error("没有找到这篇文章");
+      exportCompleteDocument(record.document, record.title);
+    } catch (error) {
+      toast("导出失败：" + error.message, true);
+    }
+  }
+  async function renderLibrary() {
+    const refresh = ++libraryRefresh;
+    const root = $("library-items");
+    if (!articleLibrary) {
+      $("library-status").textContent = libraryStorageError
+        ? "文章柜不可用；当前稿仍会尝试自动保存"
+        : "正在读取本机文章…";
+      return;
+    }
+    try {
+      const rows = await articleLibrary.list();
+      if (refresh !== libraryRefresh) return;
+      $("library-count").textContent = rows.length;
+      root.replaceChildren();
+      for (const entry of rows) {
+        const row = document.createElement("article"),
+          open = document.createElement("button"),
+          title = document.createElement("span"),
+          meta = document.createElement("span"),
+          actions = document.createElement("div"),
+          backup = document.createElement("button"),
+          remove = document.createElement("button");
+        row.className =
+          "library-item" + (entry.id === activeDocumentId ? " active" : "");
+        open.className = "library-item-open";
+        open.setAttribute("aria-label", "打开文章：" + entry.title);
+        title.className = "library-item-title";
+        title.textContent = entry.title;
+        meta.className = "library-item-meta";
+        meta.textContent =
+          formatDocumentDate(entry.updatedAt) +
+          " · " +
+          formatBytes(entry.bytes);
+        open.append(title, meta);
+        open.onclick = () => switchArticle(entry.id);
+        actions.className = "library-item-actions";
+        backup.dataset.icon = "download-simple";
+        backup.title = "下载完整文章";
+        backup.setAttribute(
+          "aria-label",
+          "下载《" + entry.title + "》完整备份",
+        );
+        backup.onclick = () => exportStoredArticle(entry.id);
+        remove.dataset.icon = "x";
+        remove.title = "从本机删除";
+        remove.setAttribute("aria-label", "从本机删除《" + entry.title + "》");
+        remove.onclick = () => removeArticle(entry.id);
+        actions.append(backup, remove);
+        row.append(open, actions);
+        root.append(row);
+        icons(row);
+      }
+      let storageText = "浏览器本地存储";
+      try {
+        const estimate = await navigator.storage?.estimate?.();
+        const persisted = await navigator.storage?.persisted?.();
+        if (estimate?.usage)
+          storageText += " · 本站已用 " + formatBytes(estimate.usage);
+        storageText += persisted ? " · 已获持久保护" : " · 请定期下载备份";
+      } catch {}
+      $("library-status").textContent = storageText;
+    } catch {
+      libraryStorageError = true;
+      $("library-status").textContent = "文章柜读取失败，请立即下载当前全文";
+    }
+  }
+  async function initializeLibrary() {
+    try {
+      articleLibrary = await DOCUMENT_LIBRARY.open();
+      let requestedId = null;
+      try {
+        requestedId = localStorage.getItem(ACTIVE_DOCUMENT);
+      } catch {}
+      const rows = await articleLibrary.list();
+      let record = requestedId ? await articleLibrary.get(requestedId) : null;
+      if (!record && rows.length) record = await articleLibrary.get(rows[0].id);
+      if (record && !requestedId) {
+        const next = normalizeDocument(record.document);
+        await writeCurrentMirror(next);
+        resetDocumentSession(next, record.id);
+      } else if (record) {
+        const currentTime = Date.parse(state.updatedAt) || 0;
+        const storedTime = Date.parse(record.updatedAt) || 0;
+        if (storedTime > currentTime) {
+          const next = normalizeDocument(record.document);
+          await writeCurrentMirror(next);
+          resetDocumentSession(next, record.id);
+        } else {
+          setActiveDocumentId(record.id);
+          await articleLibrary.put(record.id, state);
+        }
+      } else {
+        const id = articleLibrary.createId();
+        setActiveDocumentId(id);
+        await articleLibrary.put(id, state);
+      }
+      libraryStorageError = false;
+      await renderLibrary();
+    } catch {
+      articleLibrary = null;
+      libraryStorageError = true;
+      $("library-status").textContent =
+        "本机文章柜不可用；请使用“下载当前全文”保存备份";
+      $("library-count").textContent = "!";
+      toast("本机文章柜初始化失败，当前稿件未被清空。请先下载备份。", true);
+    }
+  }
   function ask(message) {
     return new Promise((resolve) => {
       const dialog = $("message-dialog");
@@ -1508,6 +1847,30 @@
       dialog.showModal();
     });
   }
+  async function saveFromButton() {
+    finishBlock();
+    const saved = await saveNow();
+    if (!saved) return toast("保存失败，请立即下载完整备份", true);
+    try {
+      await navigator.storage?.persist?.();
+    } catch {}
+    await renderLibrary();
+    toast(
+      libraryStorageError
+        ? "当前稿已保存，但文章柜异常，请下载完整备份"
+        : "文章已保存到此浏览器",
+      libraryStorageError,
+    );
+  }
+  $("save-document").addEventListener("click", saveFromButton);
+  for (const id of ["new-document", "library-new"])
+    $(id).addEventListener("click", () => createNewArticle());
+  $("library-export").addEventListener("click", () => exportCompleteDocument());
+  $("library-toggle").addEventListener("click", () => {
+    const panel = document.querySelector(".library-panel");
+    const collapsed = panel.classList.toggle("collapsed");
+    $("library-toggle").setAttribute("aria-expanded", String(!collapsed));
+  });
   function loadHistory() {
     const arr = getJSON(HISTORY, null) || getJSON("acks-md-history-v2", null);
     if (Array.isArray(arr)) return arr.slice(0, 20);
@@ -1531,6 +1894,7 @@
       arr.unshift({
         id: Date.now() + "-" + Math.random().toString(36).slice(2, 6),
         at: new Date().toISOString(),
+        documentId: activeDocumentId,
         document: clone(state),
       });
       localStorage.setItem(HISTORY, JSON.stringify(arr.slice(0, 20)));
@@ -1547,7 +1911,9 @@
     $("history-dialog").showModal();
   }
   function renderHistory() {
-    const arr = loadHistory();
+    const arr = loadHistory().filter(
+      (entry) => !entry.documentId || entry.documentId === activeDocumentId,
+    );
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -1685,14 +2051,7 @@
       }
     }
     if (action === "export-doc") {
-      try {
-        download(
-          JSON.stringify(MODEL.portableDocument(state, parser), null, 2),
-          fileTitle() + ".acks.json",
-        );
-      } catch (e) {
-        toast("导出失败：" + e.message, true);
-      }
+      exportCompleteDocument();
     }
     if (action === "export-html") {
       const out = exportHTML();
@@ -2064,6 +2423,14 @@
     }
   });
   window.addEventListener("resize", () => {
+    if (!matchMedia("(max-width: 720px)").matches) {
+      document.body.classList.remove("library-drawer-open");
+      $("library-scrim").classList.add("hidden");
+      $("outline-toggle").setAttribute(
+        "aria-expanded",
+        String(!document.body.classList.contains("outline-hidden")),
+      );
+    }
     if (draft)
       requestAnimationFrame(() =>
         document
@@ -2104,10 +2471,15 @@
   updateTitle();
   $("save-state").textContent = initialStorageError
     ? "存储异常 · 请先下载备份"
-    : "本机草稿 · 自动保存";
+    : "此浏览器 · 自动保存";
   $("save-state").classList.toggle("error", initialStorageError);
-  $("mobile-save").textContent = initialStorageError ? "存储异常" : "本机草稿";
+  $("mobile-save").textContent = initialStorageError
+    ? "存储异常"
+    : "浏览器本地";
   $("mobile-save").classList.toggle("error", initialStorageError);
   if (initialStorageError)
     toast("本地存储或旧文档读取异常，未覆盖原数据。请先下载备份。", true);
+  if (matchMedia("(max-width: 720px)").matches)
+    $("outline-toggle").setAttribute("aria-expanded", "false");
+  initializeLibrary();
 })();
