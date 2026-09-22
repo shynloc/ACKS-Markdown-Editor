@@ -1,11 +1,11 @@
 {
   "name": "acks-markdown-editor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Local-first Markdown editor with 43 rendering themes, DOCX import and WeChat-ready HTML export.",
   "scripts": {
     "build": "python3 build.py",
-    "test": "npm run build && node tests/regression.cjs && node tests/feedback.cjs && node tests/theme-revision.cjs && node tests/theme-integration.cjs && node tests/release-fixes.cjs && node tests/default-article.cjs && node tests/document-library.cjs",
+    "test": "npm run build && node tests/regression.cjs && node tests/feedback.cjs && node tests/theme-revision.cjs && node tests/theme-integration.cjs && node tests/release-fixes.cjs && node tests/default-article.cjs && node tests/document-library.cjs && node tests/audit-remediation.cjs",
     "format": "prettier --write \"src/**/*.{js,css,html,json}\" \"tests/**/*.cjs\" \"scripts/**/*.{js,cjs}\" \"*.{md,json}\"",
     "format:check": "prettier --check \"src/**/*.{js,css,html,json}\" \"tests/**/*.cjs\" \"scripts/**/*.{js,cjs}\" \"*.{md,json}\""
   },

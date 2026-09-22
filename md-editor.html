@@ -3245,6 +3245,133 @@ select {
   list-style: none;
 }
 
+/* 2026-09-22 P1 audit remediation: responsive header, mobile drawer and docks. */
+#library-close {
+  display: none;
+}
+
+@media (max-width: 1180px) and (min-width: 721px) {
+  .app-header {
+    gap: 12px;
+    padding-inline: 22px;
+  }
+  .save-state {
+    display: none;
+  }
+  #mobile-save {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  #copy {
+    min-width: 146px;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --doc-h: 52px;
+    --mobile-dock-space: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+  html,
+  body {
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .workspace {
+    height: calc(
+      100dvh - var(--header-h) - var(--doc-h) - var(--mobile-dock-space)
+    );
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mode-pane,
+  #preview-pane {
+    min-height: 100%;
+    padding-bottom: 36px;
+  }
+  .mode-dock {
+    min-height: 56px;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+  body.block-editing .mode-dock {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, calc(100% + 24px));
+  }
+  body.block-editing .format-dock {
+    bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+  }
+  #new-document,
+  #save-document,
+  .header-actions #copy,
+  .header-actions .icon-button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+  .document-strip #outline-toggle,
+  #theme-current,
+  #library-new,
+  #library-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .document-strip #outline-toggle {
+    width: 44px;
+    height: 44px;
+  }
+  #theme-current {
+    height: 44px;
+    max-width: calc(100% - 142px);
+  }
+  #library-new,
+  #library-close {
+    width: 44px;
+    height: 44px;
+  }
+  #library-close {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    background: #fff;
+  }
+  .library-head > #library-toggle,
+  .local-storage-warning button,
+  #outline-items button {
+    min-height: 44px;
+  }
+  .library-item {
+    gap: 5px 8px;
+    padding-block: 8px;
+  }
+  .library-item-open {
+    min-height: 52px;
+  }
+  .library-item-actions {
+    gap: 6px;
+  }
+  .library-item-actions button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+  .library-item-actions button:last-child {
+    color: #b42318;
+  }
+  .mode-dock .segmented button {
+    min-height: 44px;
+  }
+}
+
 /* Edition 2 never paints large gradients or patterns behind readable content. */
 .md-doc[data-revision="2"] {
   background: var(--bg) !important;
@@ -5134,6 +5261,9 @@ select {
   gap: 9px;
   font-size: 13px !important;
 }
+.import-preserve.hidden {
+  display: none !important;
+}
 .import-preserve input {
   width: 20px !important;
   height: 20px;
@@ -5456,6 +5586,12 @@ select {
               class="icon-button"
               data-icon="plus"
               aria-label="新建空白文章"
+            ></button>
+            <button
+              id="library-close"
+              class="icon-button"
+              data-icon="x"
+              aria-label="关闭本机文章柜"
             ></button>
           </div>
           <div id="library-body" class="library-body">
@@ -6014,6 +6150,7 @@ select {
     <div class="form-row">
       <label
         >导入位置<select id="import-destination">
+          <option value="new">作为新文章导入（推荐）</option>
           <option value="replace">替换当前文稿（先保留历史）</option>
           <option value="append">追加到当前文稿末尾</option>
         </select></label
@@ -29492,7 +29629,34 @@ globalThis.DOCUMENT_IMPORT = (() => {
       hasStyles: Object.keys(prepared.styles).length > 0,
     };
   }
-  return { decode, convertDocx, htmlToMarkdown, prepareDocx, escape };
+  function destination(current, incoming, choice, parser) {
+    if (choice === "new" || choice === "replace") return incoming;
+    if (choice !== "append") throw new Error("无效的导入位置");
+    const assets = JSON.parse(JSON.stringify(current.assets || {}));
+    const source = MODEL.rewriteImageURLs(
+      incoming.source,
+      parser,
+      (url, alt) => {
+        if (!url.startsWith("asset:")) return url;
+        const item = incoming.assets?.[url.slice(6)];
+        if (!item) throw new Error("导入图片资源不完整");
+        return "asset:" + MODEL.addAsset(assets, item.data, item.name || alt);
+      },
+    );
+    return {
+      ...current,
+      assets,
+      source: current.source.trimEnd() + "\n\n" + source,
+    };
+  }
+  return {
+    decode,
+    convertDocx,
+    htmlToMarkdown,
+    prepareDocx,
+    destination,
+    escape,
+  };
 })();
 
     </script>
@@ -34263,9 +34427,10 @@ function collectStyle(el, parentCS) {
       editor.placeholder = "# 输入文章标题\n\n从这里开始写作…";
       editor.setAttribute("aria-label", "编辑空白 Markdown 文章");
       let started = false;
-      editor.addEventListener("focus", () =>
-        $("format-dock").classList.remove("hidden"),
-      );
+      editor.addEventListener("focus", () => {
+        document.body.classList.add("block-editing");
+        $("format-dock").classList.remove("hidden");
+      });
       editor.addEventListener("input", () => {
         if (!started) {
           checkpoint();
@@ -34283,6 +34448,7 @@ function collectStyle(el, parentCS) {
       editor.addEventListener("blur", () => {
         setTimeout(() => {
           if (document.activeElement.closest?.("#format-dock")) return;
+          document.body.classList.remove("block-editing");
           $("format-dock").classList.add("hidden");
           if (state.source.trim()) renderWriter();
         }, 80);
@@ -34387,6 +34553,7 @@ function collectStyle(el, parentCS) {
       }
     });
     $("format-dock").classList.remove("hidden");
+    document.body.classList.add("block-editing");
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
     resizeEditor(ta);
@@ -34394,6 +34561,7 @@ function collectStyle(el, parentCS) {
   function finishBlock() {
     if (!activeBlock || composing) return;
     activeBlock = null;
+    document.body.classList.remove("block-editing");
     $("format-dock").classList.add("hidden");
     renderWriter();
     saveNow();
@@ -34431,6 +34599,7 @@ function collectStyle(el, parentCS) {
   function setMode(next) {
     if (composing) return;
     finishBlock();
+    document.body.classList.remove("block-editing");
     $("format-dock").classList.add("hidden");
     mode = next;
     document.body.classList.remove("mode-write", "mode-source", "mode-preview");
@@ -34472,23 +34641,56 @@ function collectStyle(el, parentCS) {
         end: $("src").selectionEnd,
       }),
   );
-  function closeLibraryDrawer() {
+  $("src").addEventListener("focus", () => {
+    document.body.classList.add("block-editing");
+  });
+  $("src").addEventListener("blur", () => {
+    setTimeout(() => {
+      if (document.activeElement.closest?.("#format-dock")) return;
+      document.body.classList.remove("block-editing");
+      $("format-dock").classList.add("hidden");
+    }, 80);
+  });
+  function syncLibraryDrawerAccessibility() {
+    const mobile = matchMedia("(max-width: 720px)").matches,
+      open = document.body.classList.contains("library-drawer-open"),
+      outline = $("outline");
+    if (mobile) {
+      outline.inert = !open;
+      outline.setAttribute("aria-hidden", String(!open));
+      $("library-scrim").classList.toggle("hidden", !open);
+      $("outline-toggle").setAttribute("aria-expanded", String(open));
+    } else {
+      outline.inert = document.body.classList.contains("outline-hidden");
+      outline.removeAttribute("aria-hidden");
+      $("library-scrim").classList.add("hidden");
+    }
+  }
+  function closeLibraryDrawer({ restoreFocus = false } = {}) {
     document.body.classList.remove("library-drawer-open");
-    $("library-scrim").classList.add("hidden");
-    if (matchMedia("(max-width: 720px)").matches)
-      $("outline-toggle").setAttribute("aria-expanded", "false");
+    syncLibraryDrawerAccessibility();
+    if (restoreFocus) $("outline-toggle").focus({ preventScroll: true });
   }
   $("outline-toggle").addEventListener("click", () => {
     if (matchMedia("(max-width: 720px)").matches) {
       const open = document.body.classList.toggle("library-drawer-open");
-      $("library-scrim").classList.toggle("hidden", !open);
-      $("outline-toggle").setAttribute("aria-expanded", String(open));
+      syncLibraryDrawerAccessibility();
+      if (open)
+        requestAnimationFrame(() =>
+          $("library-close").focus({ preventScroll: true }),
+        );
       return;
     }
     const hidden = document.body.classList.toggle("outline-hidden");
     $("outline-toggle").setAttribute("aria-expanded", String(!hidden));
+    syncLibraryDrawerAccessibility();
   });
-  $("library-scrim").addEventListener("click", closeLibraryDrawer);
+  $("library-scrim").addEventListener("click", () =>
+    closeLibraryDrawer({ restoreFocus: true }),
+  );
+  $("library-close").addEventListener("click", () =>
+    closeLibraryDrawer({ restoreFocus: true }),
+  );
   function renderPreview() {
     try {
       renderTheme($("preview"), state.source);
@@ -35572,6 +35774,16 @@ function collectStyle(el, parentCS) {
 function openImport() {
   finishBlock();
   if (draft) closeStyles();
+  pendingImport = null;
+  $("import-destination").value = "new";
+  $("import-preserve-row").classList.add("hidden");
+  $("import-encoding-row").classList.add("hidden");
+  $("import-preserve").checked = false;
+  $("import-apply").disabled = true;
+  $("import-name").textContent = "尚未选择文件";
+  $("import-status").textContent = "先选择文件，再检查转换结果。";
+  $("import-render").replaceChildren();
+  $("import-source").value = "";
   $("import-dialog").showModal();
   $("file-import").click();
 }
@@ -35754,28 +35966,39 @@ $("import-apply").addEventListener("click", async () => {
   if (!pendingImport?.next) return;
   $("import-apply").disabled = true;
   try {
+    const destination = $("import-destination").value;
     if (!(await saveNow()))
       throw new Error("当前文稿尚未安全保存。请先处理文稿冲突或下载备份。");
-    if (!saveSnapshot({ quiet: true }))
+    if (destination !== "new" && !saveSnapshot({ quiet: true }))
       throw new Error("无法保存导入前版本，请先下载备份并释放本地空间。");
-    let next = pendingImport.next;
-    if ($("import-destination").value === "append") {
-      const assets = clone(state.assets);
-      const source = MODEL.rewriteImageURLs(next.source, parser, (url, alt) => {
-        if (!url.startsWith("asset:")) return url;
-        const item = next.assets[url.slice(6)];
-        if (!item) throw new Error("导入图片资源不完整");
-        return "asset:" + MODEL.addAsset(assets, item.data, item.name || alt);
-      });
-      next = normalizeDocument({
-        ...state,
-        assets,
-        source: state.source.trimEnd() + "\n\n" + source,
-      });
-    }
+    let next = DOCUMENT_IMPORT.destination(
+      state,
+      pendingImport.next,
+      destination,
+      parser,
+    );
+    if (destination === "append") next = normalizeDocument(next);
     MODEL.assertResources(next.source, next.assets, parser);
     if (!Object.hasOwn(MD.THEMES, next.themeId))
       MD.THEMES[next.themeId] = clone(next.themeSnapshot);
+    if (destination === "new") {
+      if (!articleLibrary)
+        throw new Error("本机文章柜尚未就绪，当前文章未被替换。");
+      const id = articleLibrary.createId();
+      next.updatedAt = new Date().toISOString();
+      await articleLibrary.put(id, next);
+      try {
+        await writeCurrentMirror(next);
+      } catch (error) {
+        await articleLibrary.remove(id).catch(() => {});
+        throw error;
+      }
+      resetDocumentSession(next, id);
+      await renderLibrary();
+      $("import-dialog").close();
+      toast("已作为新文章导入；原文章仍保存在本机文章柜。");
+      return;
+    }
     checkpoint();
     activeBlock = null;
     state = next;
@@ -36299,8 +36522,32 @@ $("src").addEventListener("focus", () =>
     });
   }
   document.addEventListener("keydown", async (e) => {
+    if (
+      e.key === "Tab" &&
+      matchMedia("(max-width: 720px)").matches &&
+      document.body.classList.contains("library-drawer-open") &&
+      !document.querySelector("dialog[open]")
+    ) {
+      const focusable = Array.from(
+          $("outline").querySelectorAll(
+            'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((element) => element.getClientRects().length),
+        first = focusable[0],
+        last = focusable.at(-1);
+      if (
+        focusable.length &&
+        ((e.shiftKey && document.activeElement === first) ||
+          (!e.shiftKey && document.activeElement === last))
+      ) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      }
+    }
     if (e.key === "Escape") {
       closeMore();
+      if (document.body.classList.contains("library-drawer-open"))
+        closeLibraryDrawer({ restoreFocus: true });
       if (draft && !document.querySelector("dialog[open]")) closeStyles();
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
@@ -36349,12 +36596,12 @@ $("src").addEventListener("focus", () =>
   window.addEventListener("resize", () => {
     if (!matchMedia("(max-width: 720px)").matches) {
       document.body.classList.remove("library-drawer-open");
-      $("library-scrim").classList.add("hidden");
       $("outline-toggle").setAttribute(
         "aria-expanded",
         String(!document.body.classList.contains("outline-hidden")),
       );
     }
+    syncLibraryDrawerAccessibility();
     if (draft)
       requestAnimationFrame(() =>
         document
@@ -36403,8 +36650,7 @@ $("src").addEventListener("focus", () =>
   $("mobile-save").classList.toggle("error", initialStorageError);
   if (initialStorageError)
     toast("本地存储或旧文档读取异常，未覆盖原数据。请先下载备份。", true);
-  if (matchMedia("(max-width: 720px)").matches)
-    $("outline-toggle").setAttribute("aria-expanded", "false");
+  syncLibraryDrawerAccessibility();
   initializeLibrary();
 })();
 

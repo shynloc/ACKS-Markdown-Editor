@@ -24,6 +24,9 @@
   gap: 9px;
   font-size: 13px !important;
 }
+.import-preserve.hidden {
+  display: none !important;
+}
 .import-preserve input {
   width: 20px !important;
   height: 20px;

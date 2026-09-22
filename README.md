@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/github/license/shynloc/ACKS-Markdown-Editor?style=flat-square&color=111111)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](Dockerfile)
 [![Local First](https://img.shields.io/badge/数据-Local--First-F04B00?style=flat-square)](#数据存储与隐私)
-[![Tests](https://img.shields.io/badge/tests-78%20passed-2E7D32?style=flat-square)](#开发与测试)
+[![Tests](https://img.shields.io/badge/tests-83%20passed-2E7D32?style=flat-square)](#开发与测试)
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](#技术栈)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)](#技术栈)
@@ -239,7 +239,7 @@ npm install
 npm test
 ```
 
-`npm test` 会重新构建单文件应用并运行七组、共 78 项断言。格式与依赖检查：
+`npm test` 会重新构建单文件应用并运行八组、共 83 项断言。格式与依赖检查：
 
 ```bash
 npm run format:check
@@ -343,7 +343,7 @@ sudo caddy reload --config /etc/caddy/Caddyfile
 
 ## 版本与许可证
 
-当前稳定版：[v1.1.0](https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.1.0)
+当前稳定版：[v1.1.1](https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.1.1)
 
 更新记录：[`CHANGELOG.md`](CHANGELOG.md)
 

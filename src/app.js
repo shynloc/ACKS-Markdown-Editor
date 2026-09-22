@@ -772,9 +772,10 @@
       editor.placeholder = "# 输入文章标题\n\n从这里开始写作…";
       editor.setAttribute("aria-label", "编辑空白 Markdown 文章");
       let started = false;
-      editor.addEventListener("focus", () =>
-        $("format-dock").classList.remove("hidden"),
-      );
+      editor.addEventListener("focus", () => {
+        document.body.classList.add("block-editing");
+        $("format-dock").classList.remove("hidden");
+      });
       editor.addEventListener("input", () => {
         if (!started) {
           checkpoint();
@@ -792,6 +793,7 @@
       editor.addEventListener("blur", () => {
         setTimeout(() => {
           if (document.activeElement.closest?.("#format-dock")) return;
+          document.body.classList.remove("block-editing");
           $("format-dock").classList.add("hidden");
           if (state.source.trim()) renderWriter();
         }, 80);
@@ -896,6 +898,7 @@
       }
     });
     $("format-dock").classList.remove("hidden");
+    document.body.classList.add("block-editing");
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
     resizeEditor(ta);
@@ -903,6 +906,7 @@
   function finishBlock() {
     if (!activeBlock || composing) return;
     activeBlock = null;
+    document.body.classList.remove("block-editing");
     $("format-dock").classList.add("hidden");
     renderWriter();
     saveNow();
@@ -940,6 +944,7 @@
   function setMode(next) {
     if (composing) return;
     finishBlock();
+    document.body.classList.remove("block-editing");
     $("format-dock").classList.add("hidden");
     mode = next;
     document.body.classList.remove("mode-write", "mode-source", "mode-preview");
@@ -981,23 +986,56 @@
         end: $("src").selectionEnd,
       }),
   );
-  function closeLibraryDrawer() {
+  $("src").addEventListener("focus", () => {
+    document.body.classList.add("block-editing");
+  });
+  $("src").addEventListener("blur", () => {
+    setTimeout(() => {
+      if (document.activeElement.closest?.("#format-dock")) return;
+      document.body.classList.remove("block-editing");
+      $("format-dock").classList.add("hidden");
+    }, 80);
+  });
+  function syncLibraryDrawerAccessibility() {
+    const mobile = matchMedia("(max-width: 720px)").matches,
+      open = document.body.classList.contains("library-drawer-open"),
+      outline = $("outline");
+    if (mobile) {
+      outline.inert = !open;
+      outline.setAttribute("aria-hidden", String(!open));
+      $("library-scrim").classList.toggle("hidden", !open);
+      $("outline-toggle").setAttribute("aria-expanded", String(open));
+    } else {
+      outline.inert = document.body.classList.contains("outline-hidden");
+      outline.removeAttribute("aria-hidden");
+      $("library-scrim").classList.add("hidden");
+    }
+  }
+  function closeLibraryDrawer({ restoreFocus = false } = {}) {
     document.body.classList.remove("library-drawer-open");
-    $("library-scrim").classList.add("hidden");
-    if (matchMedia("(max-width: 720px)").matches)
-      $("outline-toggle").setAttribute("aria-expanded", "false");
+    syncLibraryDrawerAccessibility();
+    if (restoreFocus) $("outline-toggle").focus({ preventScroll: true });
   }
   $("outline-toggle").addEventListener("click", () => {
     if (matchMedia("(max-width: 720px)").matches) {
       const open = document.body.classList.toggle("library-drawer-open");
-      $("library-scrim").classList.toggle("hidden", !open);
-      $("outline-toggle").setAttribute("aria-expanded", String(open));
+      syncLibraryDrawerAccessibility();
+      if (open)
+        requestAnimationFrame(() =>
+          $("library-close").focus({ preventScroll: true }),
+        );
       return;
     }
     const hidden = document.body.classList.toggle("outline-hidden");
     $("outline-toggle").setAttribute("aria-expanded", String(!hidden));
+    syncLibraryDrawerAccessibility();
   });
-  $("library-scrim").addEventListener("click", closeLibraryDrawer);
+  $("library-scrim").addEventListener("click", () =>
+    closeLibraryDrawer({ restoreFocus: true }),
+  );
+  $("library-close").addEventListener("click", () =>
+    closeLibraryDrawer({ restoreFocus: true }),
+  );
   function renderPreview() {
     try {
       renderTheme($("preview"), state.source);
@@ -2375,8 +2413,32 @@
     });
   }
   document.addEventListener("keydown", async (e) => {
+    if (
+      e.key === "Tab" &&
+      matchMedia("(max-width: 720px)").matches &&
+      document.body.classList.contains("library-drawer-open") &&
+      !document.querySelector("dialog[open]")
+    ) {
+      const focusable = Array.from(
+          $("outline").querySelectorAll(
+            'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((element) => element.getClientRects().length),
+        first = focusable[0],
+        last = focusable.at(-1);
+      if (
+        focusable.length &&
+        ((e.shiftKey && document.activeElement === first) ||
+          (!e.shiftKey && document.activeElement === last))
+      ) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      }
+    }
     if (e.key === "Escape") {
       closeMore();
+      if (document.body.classList.contains("library-drawer-open"))
+        closeLibraryDrawer({ restoreFocus: true });
       if (draft && !document.querySelector("dialog[open]")) closeStyles();
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
@@ -2425,12 +2487,12 @@
   window.addEventListener("resize", () => {
     if (!matchMedia("(max-width: 720px)").matches) {
       document.body.classList.remove("library-drawer-open");
-      $("library-scrim").classList.add("hidden");
       $("outline-toggle").setAttribute(
         "aria-expanded",
         String(!document.body.classList.contains("outline-hidden")),
       );
     }
+    syncLibraryDrawerAccessibility();
     if (draft)
       requestAnimationFrame(() =>
         document
@@ -2479,7 +2541,6 @@
   $("mobile-save").classList.toggle("error", initialStorageError);
   if (initialStorageError)
     toast("本地存储或旧文档读取异常，未覆盖原数据。请先下载备份。", true);
-  if (matchMedia("(max-width: 720px)").matches)
-    $("outline-toggle").setAttribute("aria-expanded", "false");
+  syncLibraryDrawerAccessibility();
   initializeLibrary();
 })();

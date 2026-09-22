@@ -3,6 +3,16 @@ let pendingImport = null,
 function openImport() {
   finishBlock();
   if (draft) closeStyles();
+  pendingImport = null;
+  $("import-destination").value = "new";
+  $("import-preserve-row").classList.add("hidden");
+  $("import-encoding-row").classList.add("hidden");
+  $("import-preserve").checked = false;
+  $("import-apply").disabled = true;
+  $("import-name").textContent = "尚未选择文件";
+  $("import-status").textContent = "先选择文件，再检查转换结果。";
+  $("import-render").replaceChildren();
+  $("import-source").value = "";
   $("import-dialog").showModal();
   $("file-import").click();
 }
@@ -185,28 +195,39 @@ $("import-apply").addEventListener("click", async () => {
   if (!pendingImport?.next) return;
   $("import-apply").disabled = true;
   try {
+    const destination = $("import-destination").value;
     if (!(await saveNow()))
       throw new Error("当前文稿尚未安全保存。请先处理文稿冲突或下载备份。");
-    if (!saveSnapshot({ quiet: true }))
+    if (destination !== "new" && !saveSnapshot({ quiet: true }))
       throw new Error("无法保存导入前版本，请先下载备份并释放本地空间。");
-    let next = pendingImport.next;
-    if ($("import-destination").value === "append") {
-      const assets = clone(state.assets);
-      const source = MODEL.rewriteImageURLs(next.source, parser, (url, alt) => {
-        if (!url.startsWith("asset:")) return url;
-        const item = next.assets[url.slice(6)];
-        if (!item) throw new Error("导入图片资源不完整");
-        return "asset:" + MODEL.addAsset(assets, item.data, item.name || alt);
-      });
-      next = normalizeDocument({
-        ...state,
-        assets,
-        source: state.source.trimEnd() + "\n\n" + source,
-      });
-    }
+    let next = DOCUMENT_IMPORT.destination(
+      state,
+      pendingImport.next,
+      destination,
+      parser,
+    );
+    if (destination === "append") next = normalizeDocument(next);
     MODEL.assertResources(next.source, next.assets, parser);
     if (!Object.hasOwn(MD.THEMES, next.themeId))
       MD.THEMES[next.themeId] = clone(next.themeSnapshot);
+    if (destination === "new") {
+      if (!articleLibrary)
+        throw new Error("本机文章柜尚未就绪，当前文章未被替换。");
+      const id = articleLibrary.createId();
+      next.updatedAt = new Date().toISOString();
+      await articleLibrary.put(id, next);
+      try {
+        await writeCurrentMirror(next);
+      } catch (error) {
+        await articleLibrary.remove(id).catch(() => {});
+        throw error;
+      }
+      resetDocumentSession(next, id);
+      await renderLibrary();
+      $("import-dialog").close();
+      toast("已作为新文章导入；原文章仍保存在本机文章柜。");
+      return;
+    }
     checkpoint();
     activeBlock = null;
     state = next;

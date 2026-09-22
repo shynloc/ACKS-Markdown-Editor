@@ -451,5 +451,32 @@ globalThis.DOCUMENT_IMPORT = (() => {
       hasStyles: Object.keys(prepared.styles).length > 0,
     };
   }
-  return { decode, convertDocx, htmlToMarkdown, prepareDocx, escape };
+  function destination(current, incoming, choice, parser) {
+    if (choice === "new" || choice === "replace") return incoming;
+    if (choice !== "append") throw new Error("无效的导入位置");
+    const assets = JSON.parse(JSON.stringify(current.assets || {}));
+    const source = MODEL.rewriteImageURLs(
+      incoming.source,
+      parser,
+      (url, alt) => {
+        if (!url.startsWith("asset:")) return url;
+        const item = incoming.assets?.[url.slice(6)];
+        if (!item) throw new Error("导入图片资源不完整");
+        return "asset:" + MODEL.addAsset(assets, item.data, item.name || alt);
+      },
+    );
+    return {
+      ...current,
+      assets,
+      source: current.source.trimEnd() + "\n\n" + source,
+    };
+  }
+  return {
+    decode,
+    convertDocx,
+    htmlToMarkdown,
+    prepareDocx,
+    destination,
+    escape,
+  };
 })();

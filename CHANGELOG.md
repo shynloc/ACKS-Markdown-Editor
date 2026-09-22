@@ -2,6 +2,29 @@
 
 All notable changes to ACKS Markdown Editor are documented here.
 
+## [1.1.1] - 2026-09-22
+
+### Fixed
+
+- Removed the closed mobile article cabinet from the accessibility tree and keyboard order with `inert` and `aria-hidden`.
+- Added focus entry, focus return, focus containment, Escape handling and a visible mobile cabinet close button.
+- Reserved a real mobile footer area for the mode dock and hid the mode dock while editing a block, preventing content and toolbar overlap.
+- Increased high-frequency mobile targets to at least 44 × 44 px and separated download from destructive delete actions.
+- Added a 1000–1180 px header breakpoint so save state no longer wraps and primary actions remain visible.
+- Hid DOCX-only preservation controls until a DOCX file is selected.
+
+### Changed
+
+- Import now defaults to **Import as a new article**, keeping the active article in the local cabinet.
+- Replace and append remain available and continue to preserve a pre-import version.
+- Added a tested destination helper that remaps colliding image resources during append imports.
+
+### Verification
+
+- Added five import-destination assertions, bringing the Node suite to 83 assertions across eight suites.
+- Verified 320 px, 390 px and 430 px mobile layouts plus 1000 px, 1064 px, 1180 px and 1440 px desktop breakpoints.
+- Verified closed-drawer AX isolation, keyboard order, Escape focus return, 44 px targets and a real Markdown import-to-new-article flow.
+
 ## [1.1.0] - 2026-09-01
 
 ### Added
@@ -61,3 +84,4 @@ All notable changes to ACKS Markdown Editor are documented here.
 [1.0.0]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.0.0
 [1.0.1]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.0.1
 [1.1.0]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.1.0
+[1.1.1]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.1.1

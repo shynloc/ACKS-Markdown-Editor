@@ -2232,3 +2232,130 @@ select {
 .write-block li:has(> p > .task-mark) {
   list-style: none;
 }
+
+/* 2026-09-22 P1 audit remediation: responsive header, mobile drawer and docks. */
+#library-close {
+  display: none;
+}
+
+@media (max-width: 1180px) and (min-width: 721px) {
+  .app-header {
+    gap: 12px;
+    padding-inline: 22px;
+  }
+  .save-state {
+    display: none;
+  }
+  #mobile-save {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  #copy {
+    min-width: 146px;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --doc-h: 52px;
+    --mobile-dock-space: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+  html,
+  body {
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .workspace {
+    height: calc(
+      100dvh - var(--header-h) - var(--doc-h) - var(--mobile-dock-space)
+    );
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mode-pane,
+  #preview-pane {
+    min-height: 100%;
+    padding-bottom: 36px;
+  }
+  .mode-dock {
+    min-height: 56px;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+  body.block-editing .mode-dock {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, calc(100% + 24px));
+  }
+  body.block-editing .format-dock {
+    bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+  }
+  #new-document,
+  #save-document,
+  .header-actions #copy,
+  .header-actions .icon-button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+  .document-strip #outline-toggle,
+  #theme-current,
+  #library-new,
+  #library-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .document-strip #outline-toggle {
+    width: 44px;
+    height: 44px;
+  }
+  #theme-current {
+    height: 44px;
+    max-width: calc(100% - 142px);
+  }
+  #library-new,
+  #library-close {
+    width: 44px;
+    height: 44px;
+  }
+  #library-close {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    background: #fff;
+  }
+  .library-head > #library-toggle,
+  .local-storage-warning button,
+  #outline-items button {
+    min-height: 44px;
+  }
+  .library-item {
+    gap: 5px 8px;
+    padding-block: 8px;
+  }
+  .library-item-open {
+    min-height: 52px;
+  }
+  .library-item-actions {
+    gap: 6px;
+  }
+  .library-item-actions button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+  .library-item-actions button:last-child {
+    color: #b42318;
+  }
+  .mode-dock .segmented button {
+    min-height: 44px;
+  }
+}
