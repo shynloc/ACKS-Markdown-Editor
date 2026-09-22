@@ -32,16 +32,17 @@
   icons(document);
   const DEFAULT_SOURCE = ""; // DEFAULT_SOURCE_BUNDLE
   const DEFAULT_ASSETS = {}; // DEFAULT_ASSETS_BUNDLE
-  const MINI_SOURCE =
-    "# 让技术有用，也有温度\n\n工具的价值，在于让每一次表达更轻松。\n\n## 从内容开始\n\n把复杂留给系统，把清晰留给读者。\n\n> 让排版，服务内容。";
+  const MINI_SOURCE = "# 让技术有用，也有温度\n\n## 主题标题\n\n> 内容摘要";
   const STORE = "acks-md-document-v3",
     LIBRARY = "acks-md-themes-v2",
     HISTORY = "acks-md-history-v3",
-    ACTIVE_DOCUMENT = "acks-md-active-document-v1";
+    ACTIVE_DOCUMENT = "acks-md-active-document-v1",
+    THEME_PREFERENCES = "acks-md-theme-preferences-v1";
   const MAX_SOURCE = 3 * 1024 * 1024;
   let mode = "write",
     previewKind = "rich",
     draft = null,
+    styleReturn = null,
     panelTab = "themes",
     fullLibrary = false;
   let activeBlock = null,
@@ -357,6 +358,33 @@
       return fallback;
     }
   }
+  const savedThemePreferences = getJSON(THEME_PREFERENCES, {});
+  let themePreferences = {
+    recent: Array.isArray(savedThemePreferences?.recent)
+      ? savedThemePreferences.recent
+          .filter((id) => typeof id === "string")
+          .slice(0, 8)
+      : [],
+    favorites: Array.isArray(savedThemePreferences?.favorites)
+      ? savedThemePreferences.favorites
+          .filter((id) => typeof id === "string")
+          .slice(0, 40)
+      : [],
+  };
+  function saveThemePreferences() {
+    try {
+      localStorage.setItem(THEME_PREFERENCES, JSON.stringify(themePreferences));
+    } catch {
+      toast("主题偏好无法保存到此浏览器", true);
+    }
+  }
+  function recordRecentTheme(id) {
+    themePreferences.recent = [
+      id,
+      ...themePreferences.recent.filter((item) => item !== id),
+    ].slice(0, 8);
+    saveThemePreferences();
+  }
   const storedLibrary = getJSON(LIBRARY, {});
   if (
     storedLibrary &&
@@ -518,6 +546,10 @@
     applyDecorations(doc, t);
     applyLayout(doc, t);
     const title = doc.querySelector("h1");
+    if (source.length < 500 && doc.children.length < 10)
+      doc.dataset.shortArticle = "true";
+    if (title && title.textContent.trim().length > 24)
+      doc.dataset.longTitle = "true";
     if (
       (t.layout === "framed" || t.themeVersion === 2) &&
       title &&
@@ -553,19 +585,39 @@
     toastTimer = setTimeout(() => el.classList.remove("show"), 4200);
   }
   let documentStore;
+  function setSaveUI(status, message, mobileMessage = message) {
+    const button = $("save-document"),
+      label = button.querySelector(".action-label");
+    $("save-state").textContent = message;
+    $("mobile-save").textContent = mobileMessage;
+    const failed = status === "error" || status === "conflict";
+    $("save-state").classList.toggle("error", failed);
+    $("mobile-save").classList.toggle("error", failed);
+    button.disabled = status === "saved" || status === "saving";
+    button.classList.toggle("is-dirty", status === "dirty");
+    button.classList.toggle("is-saved", status === "saved");
+    if (label)
+      label.textContent =
+        status === "saved" ? "已保存" : status === "saving" ? "保存中" : "保存";
+    button.setAttribute(
+      "aria-label",
+      status === "saved"
+        ? "当前文章已保存到此浏览器"
+        : status === "saving"
+          ? "正在保存当前文章"
+          : "保存当前文章到此浏览器",
+    );
+  }
   function storageConflict(info) {
     dirty = true;
     $("save-conflict").classList.remove("hidden");
     $("conflict-message").textContent =
       info.reason === "unsupported"
-        ? "此浏览器无法提供安全的多窗口保存，请下载文稿备份。"
+        ? "此浏览器无法提供安全的多窗口保存，请导出完整 ACKS 备份。"
         : info.recovered
-          ? "其他窗口已更新文稿。自动保存已暂停，本窗口内容已留存冲突备份。"
-          : "其他窗口已更新文稿。自动保存已暂停，请先下载本窗口内容。";
-    for (const id of ["save-state", "mobile-save"]) {
-      $(id).textContent = "保存暂停 · 文稿冲突";
-      $(id).classList.add("error");
-    }
+          ? "其他窗口已更新文章。自动保存已暂停，本窗口内容已留存冲突备份。"
+          : "其他窗口已更新文章。自动保存已暂停，请先下载本窗口内容。";
+    setSaveUI("conflict", "保存暂停 · 文章冲突", "文章冲突");
   }
   try {
     documentStore = DOCUMENT_STORE.create({
@@ -581,6 +633,7 @@
   }
   async function saveNow() {
     clearTimeout(saveTimer);
+    setSaveUI("saving", "保存中…", "保存中…");
     const snapshot = clone(state);
     const contentBefore = JSON.stringify({ ...state, updatedAt: "" });
     snapshot.updatedAt = new Date().toISOString();
@@ -601,26 +654,21 @@
         }
       }
       dirty = false;
-      for (const id of ["save-state", "mobile-save"]) {
-        $(id).textContent = libraryStorageError
-          ? "当前稿已保存 · 文章柜异常"
-          : "已保存到此浏览器";
-        $(id).classList.toggle("error", libraryStorageError);
-      }
+      setSaveUI(
+        libraryStorageError ? "error" : "saved",
+        libraryStorageError ? "当前稿已保存 · 文章柜异常" : "已保存到此浏览器",
+        libraryStorageError ? "文章柜异常" : "已保存",
+      );
       return true;
     } catch {
-      for (const id of ["save-state", "mobile-save"]) {
-        $(id).textContent = "保存失败 · 请下载备份";
-        $(id).classList.add("error");
-      }
+      setSaveUI("error", "保存失败 · 请导出备份", "保存失败");
       dirty = true;
       return false;
     }
   }
   function scheduleSave() {
     dirty = true;
-    $("save-state").textContent = "保存中…";
-    $("mobile-save").textContent = "保存中…";
+    setSaveUI("dirty", "有未保存修改", "待保存");
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => saveNow(), 500);
   }
@@ -650,7 +698,7 @@
     try {
       if (
         !(await ask(
-          "本窗口内容会留存在文档历史的冲突备份中，然后载入较新版本。继续吗？",
+          "本窗口内容会留存在当前文章版本中，然后载入较新版本。继续吗？",
         ))
       )
         return;
@@ -669,7 +717,7 @@
       $("style-panel").classList.add("hidden");
       document.body.classList.remove("styling", "sheet-expanded");
       setMode("write");
-      toast("已载入较新版本；本窗口旧稿在文档历史中。");
+      toast("已载入较新版本；本窗口旧稿已保存在文章版本中。");
     } catch (e) {
       toast(e.message, true);
     }
@@ -682,7 +730,12 @@
     const heading = state.source.match(/^#\s+(.+)$/m);
     $("document-title").textContent = heading
       ? heading[1].replace(/[*_`]/g, "")
-      : "未命名文档";
+      : "未命名文章";
+    $("source-stats").textContent =
+      state.source.length.toLocaleString() +
+      " 字符 · " +
+      Object.keys(state.assets || {}).length +
+      " 张图片";
     $("theme-current").title = "选择文章主题、配方与排版微调";
     $("theme-label").textContent =
       (draft ? "预览：" : "") +
@@ -758,6 +811,7 @@
     tokenize();
     const root = $("writer");
     root.replaceChildren();
+    $("append-block").classList.toggle("hidden", !blocks.length);
     if (!blocks.length) {
       const empty = document.createElement("section"),
         title = document.createElement("h2"),
@@ -808,6 +862,8 @@
       const block = blocks[i],
         el = document.createElement("div");
       el.className = "write-block";
+      if (block.type === "heading" && block.token.text?.trim().length > 24)
+        el.classList.add("long-title");
       el.dataset.index = i;
       el.dataset.start = block.start;
       el.tabIndex = 0;
@@ -952,11 +1008,12 @@
     $("writing-pane").classList.toggle("hidden", mode !== "write");
     $("source-pane").classList.toggle("hidden", mode !== "source");
     $("preview-pane").classList.toggle("hidden", mode !== "preview");
-    document
-      .querySelectorAll("[data-mode]")
-      .forEach((b) =>
-        b.setAttribute("aria-pressed", String(b.dataset.mode === mode)),
-      );
+    document.querySelectorAll("[data-mode]").forEach((b) => {
+      const selected = b.dataset.mode === mode;
+      b.setAttribute("aria-pressed", String(selected));
+      b.setAttribute("aria-selected", String(selected));
+      b.tabIndex = selected ? 0 : -1;
+    });
     if (mode === "write") renderWriter();
     if (mode === "source") {
       $("src").value = state.source;
@@ -1040,18 +1097,35 @@
     try {
       renderTheme($("preview"), state.source);
       $("preview").classList.toggle("hidden", previewKind !== "rich");
-      $("wxframe").classList.toggle("hidden", previewKind !== "export");
+      if (previewKind !== "export") {
+        $("wxframe").classList.add("hidden");
+        $("wxframe").setAttribute("aria-busy", "false");
+        $("export-loading").classList.add("hidden");
+      }
       $("preview-status").textContent = draft ? "预览中" : "已应用";
       $("preview-rich").setAttribute(
         "aria-pressed",
+        String(previewKind === "rich"),
+      );
+      $("preview-rich").setAttribute(
+        "aria-selected",
         String(previewKind === "rich"),
       );
       $("preview-export").setAttribute(
         "aria-pressed",
         String(previewKind === "export"),
       );
+      $("preview-export").setAttribute(
+        "aria-selected",
+        String(previewKind === "export"),
+      );
+      $("preview-rich").tabIndex = previewKind === "rich" ? 0 : -1;
+      $("preview-export").tabIndex = previewKind === "export" ? 0 : -1;
       $("export-notice").classList.toggle("hidden", previewKind !== "export");
       if (previewKind === "export") {
+        $("wxframe").classList.add("hidden");
+        $("wxframe").setAttribute("aria-busy", "true");
+        $("export-loading").classList.remove("hidden");
         const output = exportHTML();
         $("wxframe").srcdoc =
           '<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:;"><style>body{margin:0;background:#fff}*{box-sizing:border-box}</style></head><body>' +
@@ -1074,14 +1148,26 @@
   $("wxframe").addEventListener("load", () => {
     try {
       $("wxframe").style.height =
-        Math.max(400, $("wxframe").contentDocument.body.scrollHeight + 10) +
+        Math.max(320, $("wxframe").contentDocument.body.scrollHeight + 10) +
         "px";
+      if (previewKind === "export") {
+        $("wxframe").classList.remove("hidden");
+        $("wxframe").setAttribute("aria-busy", "false");
+        $("export-loading").classList.add("hidden");
+      }
     } catch {}
   });
 
   function openStyles(event) {
     if (composing) return;
     restoreFocus = document.activeElement;
+    styleReturn = {
+      mode,
+      previewKind,
+      windowY: window.scrollY,
+      workspaceY: document.querySelector(".workspace")?.scrollTop || 0,
+      sourceSelection: { ...sourceSelection },
+    };
     finishBlock();
     draft = clone(state);
     previewKind = "rich";
@@ -1103,6 +1189,7 @@
   }
   async function closeStyles(apply = false) {
     if (!draft) return;
+    const returnState = styleReturn;
     if (apply) {
       checkpoint();
       state = {
@@ -1113,18 +1200,31 @@
         overrides: clone(draft.overrides),
       };
       scheduleSave();
+      recordRecentTheme(draft.themeId);
     }
     draft = null;
+    styleReturn = null;
     document.body.classList.remove("styling", "sheet-expanded");
     $("style-panel").classList.add("hidden");
     $("theme-current").setAttribute("aria-expanded", "false");
-    updateTitle();
-    renderPreview();
+    if (!apply && returnState) {
+      previewKind = returnState.previewKind;
+      sourceSelection = returnState.sourceSelection;
+      setMode(returnState.mode);
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: returnState.windowY });
+        const workspace = document.querySelector(".workspace");
+        if (workspace) workspace.scrollTop = returnState.workspaceY;
+      });
+    } else {
+      updateTitle();
+      renderPreview();
+    }
     if (apply)
       toast(
         (await saveNow())
           ? "排版已应用并保存到本机"
-          : "已应用，但保存失败，请下载完整文档",
+          : "已应用，但保存失败，请导出完整 ACKS 备份",
         !dirty ? false : true,
       );
     restoreFocus?.focus?.({ preventScroll: true });
@@ -1139,11 +1239,12 @@
   function setStyleTab(next) {
     panelTab = next;
     $("theme-expand-row").classList.toggle("hidden", next !== "themes");
-    document
-      .querySelectorAll("[data-style-tab]")
-      .forEach((b) =>
-        b.setAttribute("aria-pressed", String(b.dataset.styleTab === next)),
-      );
+    document.querySelectorAll("[data-style-tab]").forEach((b) => {
+      const selected = b.dataset.styleTab === next;
+      b.setAttribute("aria-pressed", String(selected));
+      b.setAttribute("aria-selected", String(selected));
+      b.tabIndex = selected ? 0 : -1;
+    });
     for (const key of ["themes", "recipes", "tweaks"])
       $(key + "-tab").classList.toggle("hidden", key !== next);
     if (next === "recipes") renderRecipes();
@@ -1154,11 +1255,37 @@
     .forEach((b) =>
       b.addEventListener("click", () => setStyleTab(b.dataset.styleTab)),
     );
+  document.querySelectorAll('[role="tablist"]').forEach((group) => {
+    group.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+        return;
+      const tabs = Array.from(group.querySelectorAll('[role="tab"]')).filter(
+          (tab) => !tab.disabled && tab.getClientRects().length,
+        ),
+        current = tabs.indexOf(document.activeElement);
+      if (!tabs.length || current < 0) return;
+      event.preventDefault();
+      const next =
+        event.key === "Home"
+          ? tabs[0]
+          : event.key === "End"
+            ? tabs.at(-1)
+            : tabs[
+                (current +
+                  (event.key === "ArrowRight" ? 1 : -1) +
+                  tabs.length) %
+                  tabs.length
+              ];
+      next.focus();
+      next.click();
+    });
+  });
   function selectTheme(id) {
     if (!draft) return;
     draft.themeId = id;
     draft.themeSnapshot = clone(MD.THEMES[id]);
     draft.overrides = {};
+    recordRecentTheme(id);
     updateTitle();
     renderChoices();
     renderPreview();
@@ -1170,9 +1297,12 @@
     $("theme-total").textContent = all.length;
     $("expand-label").textContent = fullLibrary
       ? "收起全部主题"
-      : "展开全部主题（" + all.length + " 款）";
+      : "查看全部主题（" + all.length + " 款）";
     $("all-themes").setAttribute("aria-expanded", String(fullLibrary));
     $("theme-filters").classList.toggle("hidden", !fullLibrary);
+    const favorite = themePreferences.favorites.includes(draft.themeId);
+    $("theme-favorite").textContent = favorite ? "取消收藏" : "收藏";
+    $("theme-favorite").setAttribute("aria-pressed", String(favorite));
     let keys = fullLibrary ? all : ["gold", "song-ink", "dark"];
     if (!fullLibrary && !keys.includes(draft.themeId))
       keys = [keys[0], draft.themeId, keys[2]];
@@ -1185,6 +1315,9 @@
         const meta = MD.THEME_META[k];
         return (
           (collection === "all" ||
+            (collection === "recent" && themePreferences.recent.includes(k)) ||
+            (collection === "favorite" &&
+              themePreferences.favorites.includes(k)) ||
             (meta?.collection || "custom") === collection) &&
           (appearance === "all" ||
             (meta?.mode ||
@@ -1192,6 +1325,12 @@
               appearance)
         );
       });
+      if (collection === "recent")
+        keys.sort(
+          (a, b) =>
+            themePreferences.recent.indexOf(a) -
+            themePreferences.recent.indexOf(b),
+        );
     }
     const grid = $("theme-grid");
     grid.replaceChildren();
@@ -1199,9 +1338,11 @@
       const t = MD.THEMES[id],
         b = document.createElement("button");
       b.className = "theme-card";
+      b.setAttribute("role", "radio");
       b.title = MD.THEME_META[id]?.description || t.name;
       b.setAttribute("aria-label", "预览主题 " + t.name);
       b.setAttribute("aria-pressed", String(id === draft.themeId));
+      b.setAttribute("aria-checked", String(id === draft.themeId));
       const thumb = document.createElement("div");
       thumb.className = "theme-thumb";
       const surface = document.createElement("div");
@@ -1255,6 +1396,17 @@
   $("theme-search").addEventListener("input", renderChoices);
   for (const id of ["theme-collection", "theme-appearance"])
     $(id).addEventListener("change", renderChoices);
+  $("theme-favorite").addEventListener("click", () => {
+    if (!draft) return;
+    const id = draft.themeId,
+      exists = themePreferences.favorites.includes(id);
+    themePreferences.favorites = exists
+      ? themePreferences.favorites.filter((item) => item !== id)
+      : [id, ...themePreferences.favorites].slice(0, 40);
+    saveThemePreferences();
+    renderChoices();
+    toast(exists ? "已取消收藏主题" : "已收藏主题");
+  });
   const RECIPE_DESCRIPTION = {
     default: "保留主题原有版式",
     tutorial: "步骤编号、代码与清晰引用",
@@ -1271,7 +1423,9 @@
     root.replaceChildren();
     for (const [id, r] of Object.entries(MD.RECIPES)) {
       const b = document.createElement("button");
+      b.setAttribute("role", "radio");
       b.setAttribute("aria-pressed", String(draft.recipeId === id));
+      b.setAttribute("aria-checked", String(draft.recipeId === id));
       const span = document.createElement("span");
       span.textContent = r.name;
       const small = document.createElement("small");
@@ -1615,7 +1769,7 @@
         JSON.stringify(MODEL.portableDocument(document, parser), null, 2),
         safeFileTitle(title) + ".acks.json",
       );
-      toast("已下载当前全文、图片资源与排版设置");
+      toast("已导出完整 ACKS 备份，包含正文、图片与排版设置");
       return true;
     } catch (error) {
       toast("导出失败：" + error.message, true);
@@ -1658,17 +1812,14 @@
     sourceSelection = { start: 0, end: 0 };
     setActiveDocumentId(id);
     $("save-conflict").classList.add("hidden");
-    for (const key of ["save-state", "mobile-save"]) {
-      $(key).textContent = "已保存到此浏览器";
-      $(key).classList.remove("error");
-    }
+    setSaveUI("saved", "已保存到此浏览器", "已保存");
     setMode("write");
     closeLibraryDrawer();
   }
   async function writeCurrentMirror(document) {
-    if (!documentStore) throw new Error("当前浏览器无法安全保存文稿");
+    if (!documentStore) throw new Error("当前浏览器无法安全保存文章");
     const result = await documentStore.save(document);
-    if (!result.ok) throw new Error("文稿冲突，切换已暂停");
+    if (!result.ok) throw new Error("文章冲突，切换已暂停");
   }
   async function switchArticle(id) {
     if (!articleLibrary || !id || id === activeDocumentId) return;
@@ -1821,7 +1972,8 @@
       $("library-status").textContent = storageText;
     } catch {
       libraryStorageError = true;
-      $("library-status").textContent = "文章柜读取失败，请立即下载当前全文";
+      $("library-status").textContent =
+        "文章柜读取失败，请立即导出完整 ACKS 备份";
     }
   }
   async function initializeLibrary() {
@@ -1860,7 +2012,7 @@
       articleLibrary = null;
       libraryStorageError = true;
       $("library-status").textContent =
-        "本机文章柜不可用；请使用“下载当前全文”保存备份";
+        "本机文章柜不可用；请使用“导出完整 ACKS 备份”保存内容";
       $("library-count").textContent = "!";
       toast("本机文章柜初始化失败，当前稿件未被清空。请先下载备份。", true);
     }
@@ -1939,7 +2091,7 @@
       if (!quiet) toast("当前正文与排版已保存为历史版本");
       return true;
     } catch {
-      toast("版本保存失败。请先下载完整文档备份。", true);
+      toast("版本保存失败。请先导出完整 ACKS 备份。", true);
       return false;
     }
   }
@@ -1971,7 +2123,7 @@
     if (!arr.length) {
       const p = document.createElement("p");
       p.className = "history-empty";
-      p.textContent = "还没有历史版本。点击上方按钮保存当前文档。";
+      p.textContent = "还没有文章版本。点击上方按钮保存当前版本。";
       root.append(p);
       return;
     }
@@ -2010,10 +2162,10 @@
         scheduleSave();
         $("history-dialog").close();
         setMode("write");
-        toast("已恢复；恢复前的文档已保留在历史中");
+        toast("已恢复；恢复前的文章已保存在版本中");
       };
       remove.onclick = async () => {
-        if (!(await ask("删除这个历史版本？当前文档不会改变。"))) return;
+        if (!(await ask("删除这个文章版本？当前文章不会改变。"))) return;
         try {
           if (entry.recoveryKey) {
             localStorage.removeItem(entry.recoveryKey);
@@ -2531,14 +2683,11 @@
   });
   setMode("write");
   updateTitle();
-  $("save-state").textContent = initialStorageError
-    ? "存储异常 · 请先下载备份"
-    : "此浏览器 · 自动保存";
-  $("save-state").classList.toggle("error", initialStorageError);
-  $("mobile-save").textContent = initialStorageError
-    ? "存储异常"
-    : "浏览器本地";
-  $("mobile-save").classList.toggle("error", initialStorageError);
+  setSaveUI(
+    initialStorageError ? "error" : "saved",
+    initialStorageError ? "存储异常 · 请先导出备份" : "此浏览器 · 自动保存",
+    initialStorageError ? "存储异常" : "浏览器本地",
+  );
   if (initialStorageError)
     toast("本地存储或旧文档读取异常，未覆盖原数据。请先下载备份。", true);
   syncLibraryDrawerAccessibility();

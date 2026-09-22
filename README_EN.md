@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/github/license/shynloc/ACKS-Markdown-Editor?style=flat-square&color=111111)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](Dockerfile)
 [![Local First](https://img.shields.io/badge/Data-Local--First-F04B00?style=flat-square)](#data-storage-and-privacy)
-[![Tests](https://img.shields.io/badge/tests-83%20passed-2E7D32?style=flat-square)](#development-and-testing)
+[![Tests](https://img.shields.io/badge/tests-88%20passed-2E7D32?style=flat-square)](#development-and-testing)
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](#technology-stack)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)](#technology-stack)
@@ -239,7 +239,7 @@ npm install
 npm test
 ```
 
-`npm test` rebuilds the single-file application and runs eight suites containing 83 assertions.
+`npm test` rebuilds the single-file application and runs eight suites containing 88 assertions.
 
 Formatting and dependency checks:
 
@@ -345,7 +345,7 @@ Never post API keys, tokens, private articles, or personal data in public issues
 
 ## Release and licence
 
-Current stable release: [v1.1.1](https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.1.1)
+Current stable release: [v1.2.0](https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.2.0)
 
 Changelog: [`CHANGELOG.md`](CHANGELOG.md)
 

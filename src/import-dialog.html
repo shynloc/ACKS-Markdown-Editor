@@ -4,7 +4,7 @@
   aria-labelledby="import-title"
 >
   <header>
-    <h2 id="import-title">导入文档</h2>
+    <h2 id="import-title">导入文章</h2>
     <button
       class="icon-button dialog-close"
       data-icon="x"
@@ -13,7 +13,7 @@
   </header>
   <div class="dialog-body">
     <p class="panel-help">
-      支持 Markdown、TXT、DOCX 和 ACKS 文档包。文件在本机转换，不上传服务器。
+      支持 Markdown、TXT、DOCX 和 ACKS 完整备份。文件在本机转换，不上传服务器。
     </p>
     <div class="import-file-row">
       <button id="import-pick" class="secondary" data-icon="upload-simple">
@@ -25,8 +25,8 @@
       <label
         >导入位置<select id="import-destination">
           <option value="new">作为新文章导入（推荐）</option>
-          <option value="replace">替换当前文稿（先保留历史）</option>
-          <option value="append">追加到当前文稿末尾</option>
+          <option value="replace">替换当前文章（先保存版本）</option>
+          <option value="append">追加到当前文章末尾</option>
         </select></label
       >
       <label id="import-encoding-row" class="hidden"

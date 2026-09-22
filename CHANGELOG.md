@@ -2,6 +2,33 @@
 
 All notable changes to ACKS Markdown Editor are documented here.
 
+## [1.2.0] - 2026-09-22
+
+### Improved
+
+- Moved **View all 43 themes** directly below the three quick theme cards.
+- Added browser-local recent themes and theme favourites with dedicated filters.
+- Restored the previous mode, output kind and scroll position when theme editing is cancelled.
+- Restyled Source as a clear monospace code editor with character and image counts.
+- Changed Import to open its explanation first instead of immediately opening the system file picker.
+- Grouped the More menu into Version, Import, Export and Example sections and unified article/backup terminology.
+- Added explicit unsaved, saving and saved button states; Save is subdued and disabled when no changes remain.
+- Added mobile long-title treatment for writing and rendered themes.
+- Added a visible, announced loading state while WeChat output is generated.
+- Reduced empty space for short rendered articles and simplified theme-card sample content.
+
+### Accessibility
+
+- Exposed work modes, output kinds and style categories as keyboard-operable tablists.
+- Exposed theme and recipe choices as radio groups.
+- Added Left/Right/Home/End keyboard navigation for segmented tabs.
+- Disabled the text-colour picker until custom colour is enabled and corrected the no-selection apply label.
+
+### Verification
+
+- Expanded the audit-remediation suite to ten assertions and the complete Node suite to 88 assertions.
+- Rechecked theme entry placement, cancel restoration, Source styling, explicit import entry, grouped menus, save-state transitions, theme favourites, long titles and runtime logs in a real browser.
+
 ## [1.1.1] - 2026-09-22
 
 ### Fixed
@@ -85,3 +112,4 @@ All notable changes to ACKS Markdown Editor are documented here.
 [1.0.1]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.0.1
 [1.1.0]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.1.0
 [1.1.1]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.1.1
+[1.2.0]: https://github.com/shynloc/ACKS-Markdown-Editor/releases/tag/v1.2.0

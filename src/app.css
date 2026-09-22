@@ -609,11 +609,12 @@ select:focus-visible {
   display: block;
   width: 100%;
   min-height: calc(100dvh - 250px);
-  resize: vertical;
-  border: 0;
+  resize: none;
+  border: 1px solid #e1e1e5;
+  border-radius: 14px;
   outline: 0;
-  padding: 0;
-  background: #fff;
+  padding: 18px 20px;
+  background: #f7f7f9;
   color: #252528;
   font:
     15px/1.9 ui-monospace,
@@ -621,6 +622,10 @@ select:focus-visible {
     "PingFang SC",
     monospace;
   tab-size: 2;
+}
+#src:focus {
+  border-color: #b9480d;
+  box-shadow: 0 0 0 3px rgb(185 72 13 / 10%);
 }
 .mode-dock {
   position: fixed;
@@ -722,6 +727,9 @@ select:focus-visible {
   max-width: none;
   min-height: 400px;
 }
+.theme-surface .md-doc[data-short-article="true"] {
+  min-height: 0 !important;
+}
 .theme-surface {
   width: 100%;
 }
@@ -729,8 +737,17 @@ select:focus-visible {
   width: 100%;
   border: 0;
   background: #fff;
-  min-height: 500px;
+  min-height: 320px;
   display: block;
+}
+.export-loading {
+  min-height: 400px;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
 }
 .export-notice {
   max-width: 580px;
@@ -891,7 +908,7 @@ select:focus-visible {
   flex: 1;
 }
 .sheet-footer .secondary {
-  padding: 10px 22px;
+  padding: 10px 14px;
 }
 #theme-search {
   width: 100%;
@@ -1017,6 +1034,20 @@ body.outline-hidden .format-dock {
   text-align: left;
   font-size: 13px;
   border-radius: 10px;
+}
+.popover-label {
+  margin: 5px 8px 2px;
+  padding-top: 8px;
+  border-top: 1px solid #eeeef0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+.popover-label:first-child {
+  margin-top: 0;
+  padding-top: 2px;
+  border-top: 0;
 }
 .popover button:hover {
   background: var(--surface);
@@ -1213,6 +1244,11 @@ select {
 .theme-surface .md-doc[data-layout="framed"] h2 {
   color: var(--heading);
 }
+.theme-surface .md-doc[data-long-title="true"] h1 {
+  font-size: clamp(30px, 5vw, 44px) !important;
+  line-height: 1.35 !important;
+  overflow-wrap: anywhere;
+}
 @media (min-width: 721px) {
   body.styling .preview-scroll {
     max-width: 580px;
@@ -1367,6 +1403,11 @@ select {
     font-size: 29px;
     line-height: 1.45;
     letter-spacing: -0.7px;
+  }
+  .write-block.long-title h1 {
+    font-size: 26px;
+    line-height: 1.42;
+    overflow-wrap: anywhere;
   }
   .write-block h2 {
     font-size: 22px;
@@ -1550,7 +1591,7 @@ select {
     font-size: 15px;
   }
   .sheet-footer .secondary {
-    padding: 10px 22px;
+    padding: 10px 14px;
     font-size: 14px;
   }
   body.styling .workspace {
@@ -2141,9 +2182,8 @@ select {
   }
 }
 .theme-expand-row {
-  flex: none;
-  padding: 0 20px;
-  background: white;
+  padding: 0;
+  background: transparent;
 }
 .theme-expand-row .theme-expand {
   margin: 4px 0 2px;
@@ -2156,7 +2196,7 @@ select {
     height: 128px;
   }
   .theme-expand-row {
-    padding: 0 20px;
+    padding: 0;
   }
   .theme-expand-row .theme-expand {
     min-height: 44px;
@@ -2236,6 +2276,14 @@ select {
 /* 2026-09-22 P1 audit remediation: responsive header, mobile drawer and docks. */
 #library-close {
   display: none;
+}
+#save-document.is-saved {
+  opacity: 0.72;
+}
+#save-document.is-dirty {
+  border-color: #e7a27d;
+  background: #fff5ef;
+  color: #9f3210;
 }
 
 @media (max-width: 1180px) and (min-width: 721px) {

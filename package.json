@@ -1,6 +1,6 @@
 {
   "name": "acks-markdown-editor",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "description": "Local-first Markdown editor with 43 rendering themes, DOCX import and WeChat-ready HTML export.",
   "scripts": {

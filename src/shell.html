@@ -47,7 +47,7 @@
           id="import-open"
           class="secondary"
           data-icon="upload-simple"
-          aria-label="导入文档"
+          aria-label="导入文章"
         >
           导入
         </button>
@@ -82,45 +82,49 @@
       role="menu"
       aria-label="更多操作"
     >
+      <div class="popover-label" role="presentation">版本</div>
       <button
         role="menuitem"
         data-action="history"
         data-icon="clock-counter-clockwise"
       >
-        文档历史
+        当前文章版本
       </button>
       <button role="menuitem" data-action="snapshot" data-icon="plus">
-        保存版本
+        保存当前版本
       </button>
+      <div class="popover-label" role="presentation">导入</div>
       <button role="menuitem" data-action="import" data-icon="upload-simple">
-        导入 Markdown / 文档
+        导入文章
       </button>
+      <div class="popover-label" role="presentation">导出</div>
       <button
         role="menuitem"
         data-action="export-md"
         data-icon="download-simple"
       >
-        下载 Markdown / 图片包
+        导出 Markdown 与图片
       </button>
       <button
         role="menuitem"
         data-action="export-doc"
         data-icon="download-simple"
       >
-        下载完整文档
+        导出完整 ACKS 备份
       </button>
       <button role="menuitem" data-action="export-html" data-icon="code">
-        下载公众号 HTML
+        导出公众号 HTML
       </button>
+      <div class="popover-label" role="presentation">示例</div>
       <button
         role="menuitem"
         data-action="sample"
         data-icon="arrow-counter-clockwise"
       >
-        载入介绍文章（先保存）
+        载入介绍文章（先保存当前文章）
       </button>
     </div>
-    <section class="document-strip" aria-label="文档信息">
+    <section class="document-strip" aria-label="文章信息">
       <button
         id="outline-toggle"
         class="icon-button"
@@ -128,7 +132,7 @@
         aria-label="切换本机文章柜与文章大纲"
         aria-expanded="true"
       ></button>
-      <span id="document-title">未命名文档</span
+      <span id="document-title">未命名文章</span
       ><span id="mobile-save" role="status">浏览器本地</span>
       <button
         id="theme-current"
@@ -143,7 +147,7 @@
     </section>
     <aside id="save-conflict" class="save-conflict hidden" role="alert">
       <p id="conflict-message"></p>
-      <button id="conflict-download" class="secondary">下载本窗口文稿</button
+      <button id="conflict-download" class="secondary">下载本窗口文章</button
       ><button id="conflict-load" class="secondary">备份并载入较新版本</button>
     </aside>
     <button
@@ -188,7 +192,7 @@
                 class="secondary"
                 data-icon="download-simple"
               >
-                下载当前全文
+                下载完整备份
               </button>
             </div>
             <p id="library-status" class="library-status" role="status">
@@ -217,6 +221,7 @@
         <div id="source-pane" class="mode-pane hidden">
           <label class="writing-meta" for="src"
             >Markdown 源码
+            <span id="source-stats">0 字符 · 0 张图片</span>
             <span class="local-badge">与写作画布同步</span></label
           >
           <p id="asset-note" class="media-note hidden">
@@ -231,9 +236,22 @@
         </div>
         <div id="preview-pane" class="mode-pane hidden">
           <div class="preview-toolbar">
-            <div class="segmented" role="group" aria-label="成稿输出类型">
-              <button id="preview-rich" aria-pressed="true">完整效果</button
-              ><button id="preview-export" aria-pressed="false">
+            <div class="segmented" role="tablist" aria-label="成稿输出类型">
+              <button
+                id="preview-rich"
+                role="tab"
+                aria-selected="true"
+                aria-pressed="true"
+                aria-controls="preview"
+              >
+                完整效果</button
+              ><button
+                id="preview-export"
+                role="tab"
+                aria-selected="false"
+                aria-pressed="false"
+                aria-controls="wxframe"
+              >
                 公众号输出
               </button>
             </div>
@@ -241,10 +259,19 @@
           </div>
           <div id="preview-scroll" class="preview-scroll">
             <div id="preview" class="theme-surface"></div>
+            <div
+              id="export-loading"
+              class="export-loading hidden"
+              role="status"
+              aria-live="polite"
+            >
+              正在生成公众号预览…
+            </div>
             <iframe
               id="wxframe"
               class="hidden"
               title="公众号输出预览"
+              aria-busy="false"
               sandbox="allow-same-origin"
               referrerpolicy="no-referrer"
             ></iframe>
@@ -254,10 +281,32 @@
       </section>
     </main>
     <nav id="mode-dock" class="mode-dock" aria-label="编辑模式">
-      <div class="segmented">
-        <button data-mode="write" aria-pressed="true">写作</button
-        ><button data-mode="source" aria-pressed="false">源码</button
-        ><button data-mode="preview" aria-pressed="false">成稿</button>
+      <div class="segmented" role="tablist" aria-label="编辑模式">
+        <button
+          data-mode="write"
+          role="tab"
+          aria-selected="true"
+          aria-pressed="true"
+          aria-controls="writing-pane"
+        >
+          写作</button
+        ><button
+          data-mode="source"
+          role="tab"
+          aria-selected="false"
+          aria-pressed="false"
+          aria-controls="source-pane"
+        >
+          源码</button
+        ><button
+          data-mode="preview"
+          role="tab"
+          aria-selected="false"
+          aria-pressed="false"
+          aria-controls="preview-pane"
+        >
+          成稿
+        </button>
       </div>
       <button
         id="dock-style"
@@ -326,10 +375,32 @@
         <h2 id="style-title">文章排版</h2>
         <span class="sheet-spacer"></span>
       </header>
-      <div class="style-tabs segmented" role="group" aria-label="排版类别">
-        <button data-style-tab="themes" aria-pressed="true">主题</button
-        ><button data-style-tab="recipes" aria-pressed="false">配方</button
-        ><button data-style-tab="tweaks" aria-pressed="false">微调</button>
+      <div class="style-tabs segmented" role="tablist" aria-label="排版类别">
+        <button
+          data-style-tab="themes"
+          role="tab"
+          aria-selected="true"
+          aria-pressed="true"
+          aria-controls="themes-tab"
+        >
+          主题</button
+        ><button
+          data-style-tab="recipes"
+          role="tab"
+          aria-selected="false"
+          aria-pressed="false"
+          aria-controls="recipes-tab"
+        >
+          配方</button
+        ><button
+          data-style-tab="tweaks"
+          role="tab"
+          aria-selected="false"
+          aria-pressed="false"
+          aria-controls="tweaks-tab"
+        >
+          微调
+        </button>
       </div>
       <div class="style-scroll">
         <div id="themes-tab">
@@ -347,6 +418,8 @@
             <label
               >主题系列<select id="theme-collection">
                 <option value="all">全部系列</option>
+                <option value="recent">最近使用</option>
+                <option value="favorite">收藏主题</option>
                 <option value="acks">ACKS · 19 款</option>
                 <option value="milestone">Milestone · 24 款</option>
                 <option value="custom">我的主题</option>
@@ -360,14 +433,34 @@
               </select></label
             >
           </div>
-          <div id="theme-grid" class="theme-grid"></div>
+          <div
+            id="theme-grid"
+            class="theme-grid"
+            role="radiogroup"
+            aria-label="文章主题"
+          ></div>
           <p id="theme-empty" class="panel-help hidden">
             没有匹配的主题，换个关键词试试。
           </p>
+          <div id="theme-expand-row" class="theme-expand-row">
+            <button
+              id="all-themes"
+              class="theme-expand"
+              aria-expanded="false"
+              data-icon="caret-down"
+            >
+              <span id="expand-label">查看全部主题（43 款）</span>
+            </button>
+          </div>
         </div>
         <div id="recipes-tab" class="hidden">
           <p class="panel-help">配方调整文章结构，保留主题配色。</p>
-          <div id="recipe-list" class="recipe-list"></div>
+          <div
+            id="recipe-list"
+            class="recipe-list"
+            role="radiogroup"
+            aria-label="排版配方"
+          ></div>
         </div>
         <div id="tweaks-tab" class="hidden tweak-list">
           <label
@@ -420,20 +513,11 @@
           </p>
         </div>
       </div>
-      <div id="theme-expand-row" class="theme-expand-row">
-        <button
-          id="all-themes"
-          class="theme-expand"
-          aria-expanded="false"
-          data-icon="caret-down"
-        >
-          <span id="expand-label">展开全部主题（43 款）</span>
-        </button>
-      </div>
       <footer class="sheet-footer">
         <p id="theme-trial" role="status">请选择主题</p>
         <div>
           <button id="style-apply" class="primary">应用排版</button
+          ><button id="theme-favorite" class="secondary">收藏</button
           ><button id="custom-open" class="secondary">自定义</button>
         </div>
       </footer>
@@ -531,11 +615,11 @@
         <button
           class="icon-button dialog-close"
           data-icon="x"
-          aria-label="关闭文档历史"
+          aria-label="关闭文章版本"
         ></button>
       </header>
       <div class="dialog-body">
-        <p class="panel-help">恢复前会保留当前文档。历史包含正文与排版设置。</p>
+        <p class="panel-help">恢复前会保留当前文章。版本包含正文与排版设置。</p>
         <button id="snapshot" class="secondary" data-icon="plus">
           保存当前版本
         </button>

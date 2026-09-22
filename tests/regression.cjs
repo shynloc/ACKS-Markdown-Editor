@@ -110,6 +110,9 @@ test("storage failures are not reported as a successful save", async () => {
     },
     STORE: "test",
     dirty: true,
+    setSaveUI: (kind, message) => {
+      status.textContent = message;
+    },
     $: () => status,
   });
   const source = read("src/app.js");

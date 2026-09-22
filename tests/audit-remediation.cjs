@@ -105,4 +105,52 @@ test("the import dialog defaults to creating a new article", () => {
   assert.deepEqual(values, ["new", "replace", "append"]);
 });
 
+test("segmented navigation exposes mutually exclusive tab semantics", () => {
+  const html = fs.readFileSync(path.join(root, "src/shell.html"), "utf8");
+  assert.match(html, /role="tablist" aria-label="编辑模式"/);
+  assert.match(
+    html,
+    /data-mode="source"[\s\S]*?role="tab"[\s\S]*?aria-controls="source-pane"/,
+  );
+  assert.match(html, /role="radiogroup"[\s\S]*?aria-label="文章主题"/);
+});
+
+test("the complete-theme control follows the quick theme grid", () => {
+  const html = fs.readFileSync(path.join(root, "src/shell.html"), "utf8");
+  const themes = html.match(
+    /<div id="themes-tab">([\s\S]*?)<div id="recipes-tab"/,
+  )?.[1];
+  assert.ok(themes);
+  assert.ok(
+    themes.indexOf('id="theme-grid"') < themes.indexOf('id="all-themes"'),
+  );
+  assert.ok(themes.includes("查看全部主题（43 款）"));
+});
+
+test("opening import waits for an explicit file-selection action", () => {
+  const source = fs.readFileSync(path.join(root, "src/import-ui.js"), "utf8");
+  const open = source.slice(
+    source.indexOf("function openImport()"),
+    source.indexOf('$("import-open")'),
+  );
+  assert.ok(open.includes('$("import-pick").focus()'));
+  assert.ok(!open.includes('$("file-import").click()'));
+});
+
+test("source mode has code-editor styling and live document stats", () => {
+  const html = fs.readFileSync(path.join(root, "src/shell.html"), "utf8");
+  const css = fs.readFileSync(path.join(root, "src/app.css"), "utf8");
+  assert.ok(html.includes('id="source-stats"'));
+  assert.match(css, /#src\s*\{[\s\S]*?resize:\s*none;[\s\S]*?ui-monospace/);
+});
+
+test("WeChat output exposes a loading status while the iframe is generated", () => {
+  const html = fs.readFileSync(path.join(root, "src/shell.html"), "utf8");
+  const app = fs.readFileSync(path.join(root, "src/app.js"), "utf8");
+  assert.ok(html.includes('id="export-loading"'));
+  assert.ok(html.includes('aria-busy="false"'));
+  assert.ok(app.includes('setAttribute("aria-busy", "true")'));
+  assert.ok(app.includes('setAttribute("aria-busy", "false")'));
+});
+
 console.log(JSON.stringify({ passed: results.length, results }, null, 2));

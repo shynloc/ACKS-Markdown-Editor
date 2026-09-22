@@ -14,7 +14,7 @@ function openImport() {
   $("import-render").replaceChildren();
   $("import-source").value = "";
   $("import-dialog").showModal();
-  $("file-import").click();
+  $("import-pick").focus();
 }
 $("import-open").addEventListener("click", openImport);
 $("import-pick").addEventListener("click", () => $("file-import").click());
@@ -197,7 +197,7 @@ $("import-apply").addEventListener("click", async () => {
   try {
     const destination = $("import-destination").value;
     if (!(await saveNow()))
-      throw new Error("当前文稿尚未安全保存。请先处理文稿冲突或下载备份。");
+      throw new Error("当前文章尚未安全保存。请先处理冲突或导出完整备份。");
     if (destination !== "new" && !saveSnapshot({ quiet: true }))
       throw new Error("无法保存导入前版本，请先下载备份并释放本地空间。");
     let next = DOCUMENT_IMPORT.destination(
@@ -234,7 +234,8 @@ $("import-apply").addEventListener("click", async () => {
     scheduleSave();
     $("import-dialog").close();
     setMode("write");
-    if (await saveNow()) toast("文档已导入；导入前的内容已保存在文档历史。");
+    if (await saveNow())
+      toast("文章已导入；导入前的内容已保存在当前文章版本中。");
   } catch (e) {
     $("import-status").textContent = e.message;
     $("import-apply").disabled = false;

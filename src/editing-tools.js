@@ -36,6 +36,10 @@ function openTools(tab) {
   $("selection-hint").textContent = text
     ? "将应用于所选文字：" + text.slice(0, 40) + (text.length > 40 ? "…" : "")
     : "未选择文字：在光标处插入；段落工具应用于当前行。";
+  $("inline-style-apply").textContent = text
+    ? "应用到所选文字"
+    : "在光标处应用";
+  $("inline-color").disabled = !$("inline-color-enable").checked;
   $("link-text").value = text;
   for (const name of ["link", "code", "table"])
     $("insert-" + name).classList.add("hidden");
@@ -158,6 +162,9 @@ $("inline-style-apply").addEventListener("click", () =>
     color: $("inline-color-enable").checked ? $("inline-color").value : "",
   }),
 );
+$("inline-color-enable").addEventListener("change", () => {
+  $("inline-color").disabled = !$("inline-color-enable").checked;
+});
 $("code-apply").addEventListener("click", () =>
   applyEdit("code-block", { language: $("code-language").value }),
 );
